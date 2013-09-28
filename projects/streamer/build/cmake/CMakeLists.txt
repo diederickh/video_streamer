@@ -3,7 +3,12 @@ cmake_minimum_required(VERSION 2.8)
 project(VideoStreamer)
 
 option(USE_GRAPH "Generate graphs to inspect the encoder (audio/video) and network i/o" ON)
-option(USE_64BIT "Compile a 64bit version (else we build 32bit)" ON)
+
+if(WIN32)
+  option(USE_64BIT "Compile a 64bit version (else we build 32bit)" OFF)
+else()
+  option(USE_64BIT "Compile a 64bit version (else we build 32bit)" ON)
+endif()
 
 if(USE_64BIT)
   set(vs_arch "x86_64")
