@@ -7,6 +7,7 @@ extern "C" {
 #include <signal.h>
 #include <decklink/DeckLink.h>
 #include <decklink/DeckLinkTypes.h>
+//#include <streamer/videostreamer/VideoStreamer.h>
 #include <xmmintrin.h>
 #include <stdint.h>
 #include <libyuv/libyuv.h>

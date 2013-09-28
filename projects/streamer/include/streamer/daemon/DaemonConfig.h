@@ -1,7 +1,7 @@
 #ifndef ROXLU_VIDEOSTREAMER_CONFIG_H
 #define ROXLU_VIDEOSTREAMER_CONFIG_H
 
-#include <streamer/core/Config.h>
+#include <xmlconfig/Config.h>
 #include <map>
 
 // ----------------------------------------------

@@ -5,4 +5,6 @@ set(tiny_inc_dir ${tiny_base_dir}/include/)
 
 include_directories(${tiny_inc_dir})
 
-install(DIRECTORY ${tiny_inc_dir}/ DESTINATION include) 
+set(CMAKE_INSTALL_PREFIX ${tiny_base_dir}/../../install)
+
+install(DIRECTORY ${tiny_inc_dir} DESTINATION include) 

@@ -2,7 +2,7 @@
 #include <fstream>
 #include <rapidxml.hpp>
 #include <rapidxml_utils.hpp>
-#include <streamer/core/Config.h>
+#include <xmlconfig/Config.h>
 
 Config::Config() {
 }

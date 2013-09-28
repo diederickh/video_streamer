@@ -26,6 +26,8 @@ set(vs_extern_dir ${vs_base_dir}/../../extern)
 set(CMAKE_INSTALL_PREFIX ${vs_base_dir}/../../install/)
 set(CMAKE_OSX_ARCHITECTURES ${vs_arch})
 
+include(${vs_base_dir}/../xmlconfig/build/cmake/CMakeLists.txt) # XMLConfig
+
 include_directories(${vs_base_dir}/include)
 
 add_definitions(
@@ -60,7 +62,6 @@ set(vs_source_files
   ${vs_src_dir}/core/RTMPWriter.cpp
   ${vs_src_dir}/core/EncoderThread.cpp
   ${vs_src_dir}/core/RTMPThread.cpp
-  ${vs_src_dir}/core/Config.cpp
   ${vs_src_dir}/daemon/Daemon.cpp
   ${vs_src_dir}/daemon/DaemonConfig.cpp
   ${vs_src_dir}/daemon/Runner.cpp
@@ -103,13 +104,13 @@ set(vs_extern_include_dir ${vs_extern_dir}/${vs_triplet}/include/)
 set(vs_extern_lib_dir ${vs_extern_dir}/${vs_triplet}/lib/)
 set(vs_extern_bin_dir ${vs_extern_dir}/${vs_triplet}/bin/)
 
-message(STATUS ${vs_extern_include_dir})
-
 include_directories(${vs_extern_include_dir})
 
 add_executable(${vs_app_name} ${vs_src_dir}/main.cpp ${vs_source_files})
 
 add_library(${vs_lib_name} STATIC ${vs_source_files})
+
+add_dependencies(${vs_lib_name} xmlconfig)
 
 # libraries
 if(APPLE)
@@ -144,6 +145,7 @@ if(WIN32)
     psapi.lib
     iphlpapi.lib
     Winmm.lib  # for librtmp timeGetTime
+    ${vs_base_dir}/../../install/lib/${vs_triplet}/xmlconfig.lib
     )
 
   set(vs_extern_install_files

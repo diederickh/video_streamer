@@ -1,7 +1,8 @@
-#ifndef ROXLU_DECKLINK_H
-#define ROXLU_DECKLINK_H
+#ifndef ROXLU_DECKLINK_BASE_H
+#define ROXLU_DECKLINK_BASE_H
 
 #include <iostream>
+//#include <decklink/Common.h>
 #include <DeckLinkAPI.h>
 #include <decklink/DeckLinkCard.h>
 #include <decklink/DeckLinkTypes.h>

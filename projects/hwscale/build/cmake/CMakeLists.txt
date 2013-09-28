@@ -4,7 +4,6 @@ project(hwscale)
 
 #include(${CMAKE_CURRENT_LIST_DIR}/../../../roxlu/lib/build/cmake/CMakeLists.txt)
 
-
 option(USE_64BIT "Compile as 64bit library" ON)
 
 if(USE_64BIT)
@@ -44,7 +43,7 @@ endif()
 
 if(APPLE)
   set(hws_platform "mac")
-elseif(WIN)
+elseif(WIN32)
   set(hws_platform "win")
 else()
   set(hws_platform "unix")

@@ -2,6 +2,7 @@
 #define ROXLU_DECKLINK_CAPTURE_CALLBACK_H
 
 #include <DeckLinkAPI.h>
+//#include <decklink/Common.h>
 #include <decklink/DeckLinkTypes.h>
 
 class DeckLinkCaptureCallback : public IDeckLinkInputCallback {

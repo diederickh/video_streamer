@@ -2,6 +2,7 @@
 #define ROXLU_DECKLINK_CARD_H
 
 #include <DeckLinkAPI.h>
+//#include <decklink/Common.h>
 #include <decklink/DeckLinkCaptureCallback.h>
 #include <decklink/DeckLinkTypes.h>
 
