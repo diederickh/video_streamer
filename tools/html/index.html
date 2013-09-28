@@ -1,0 +1,52 @@
+<!-- -*- mode: html -*- -->
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Streaming Video Player</title>
+    <link rel="stylesheet" href="css/rtmpd.css">
+    <script src="js/flowplayer-3.2.12.min.js"></script>
+    <script src="js/video_streamer.js"></script>
+  </head>
+  <body onload="video_streamer_init();"> 
+    <div id="page">
+
+      <div><iframe width='640' height='360' frameborder="0" scrolling="no" src="http://edge1.streamingtank.tv/mission/523c23cf186d6be634000000/"></iframe></div>
+<!--
+      <div class="player">
+        <h2>Akamai playbacks</h2>
+        <div id="akamai_container"> </div>
+      </div>
+
+
+      <div class="player" style="width:320px;">
+        <h2>File playbacks</h2>
+        <div id="file_container" style="width:320px;"> </div>
+      </div>
+
+      <div class="player">
+        <h2>File playback</h2>
+        <div id="playback_container"></div>
+      </div>
+-->
+
+      <div class="player">
+        <h2>Live stream</h2>
+        <div id="live_container"></div>
+      </div>
+<!--
+      <div class="player">
+        <h2>raw.flv</h2>
+        <div id="raw_container"></div>
+      </div>
+
+      <div class="player" style="width:320px;">
+        <h2>RTMPDUMP recording</h2>
+        <div id="rtmp_container" style="width:320px;"> </div>
+      </div>
+-->
+
+    </div>
+
+  </body>
+</html>
