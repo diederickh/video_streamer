@@ -25,12 +25,16 @@ VideoSettings::VideoSettings()
 
 bool VideoSettings::validate() {
   if(!width || !height || !fps) {
-#if !defined(NDEBUG)
     printf("videosettings: invalid settings. width = %d, height = %d, fps = %d\n", width, height, fps);
-#endif
     return false;
   }
   return true;
+}
+
+void VideoSettings::print() {
+  printf("video_settings.width :%d\n", width);
+  printf("video_settings.height :%d\n", height);
+  printf("video_settings.fps :%d\n", fps);
 }
 
 // -----------------------------------------
@@ -47,32 +51,34 @@ AudioSettings::AudioSettings()
   printf("AudioSettings.quality: not used atm\n");
 }
 
+void AudioSettings::print() {
+  printf("audio_settings.samplerate: %d\n", samplerate);
+  printf("audio_settings.mode: %d\n", mode);
+  printf("audio_settings.bitsize: %d\n", bitsize);
+  printf("audio_settings.quality: %d\n", quality);
+  printf("audio_settings.bitrate: %d\n", bitrate);
+  printf("audio_settings.in_bitsize: %d\n", in_bitsize);
+  printf("audio_settings.in_interleaved: %d\n", in_interleaved);
+}
+
 bool AudioSettings::validate() {
   if(samplerate == AV_AUDIO_SAMPLERATE_UNKNOWN) {
-#if !defined(NDEBUG)
     printf("audiosettings: no samplerate set.\n");
-#endif
     return false;
   }
 
   if(mode == AV_AUDIO_MODE_UNKNOWN) {
-#if !defined(NDEBUG)
     printf("audiosettings: no audio mode set.\n");
     return false;
-#endif    
   }
 
   if(bitsize == AV_AUDIO_BITSIZE_UNKNOWN) {
-#if !defined(NDEBUG)
     printf("audiosettings: no bitsize set.\n");
     return false;
-#endif
   }
 
   if(!bitrate) {
-#if !defined(NDEBUG)
     printf("audiosettings: no bitrate set.\n");
-#endif    
     return false;
   }
 
@@ -91,11 +97,14 @@ ServerSettings::ServerSettings() {
 
 bool ServerSettings::validate() {
   if(!url.size()) {
-#if !defined(NDEBUG)
     printf("serversettings: no url set.\n");
     return false;
-#endif    
   }
-    return true;
+  return true;
 }
+
+void ServerSettings::print() {
+  printf("server_settings.url: %s\n", url.c_str());
+}
+
 // -----------------------------------------

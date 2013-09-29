@@ -384,9 +384,8 @@ void YUV420PGrabber::endGrab() {
   glUseProgram(0);
   glBindTexture(GL_TEXTURE_2D, 0);
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
-  glDrawBuffer(GL_BACK_LEFT);
+  glDrawBuffer(GL_BACK);
   glViewport(0,0, win_w, win_h);
-  
 }
 
 void YUV420PGrabber::downloadTextures() {
@@ -407,15 +406,17 @@ void YUV420PGrabber::downloadTextures() {
   glReadPixels(0, 0, vid_w, vid_h, GL_RED, GL_UNSIGNED_BYTE, y_plane);
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
-  glDrawBuffer(GL_BACK_LEFT);
+  glDrawBuffer(GL_BACK);
 }
 
+// @todo - this makes the screen flicker!
 void YUV420PGrabber::draw() {
   assert(win_w);
   assert(win_h);
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
-  glViewport(0,0, win_w, win_h);
+  glDrawBuffer(GL_BACK);
+  glViewport(0, 0, win_w, win_h);
 
   bindVAO();
 
@@ -429,6 +430,7 @@ void YUV420PGrabber::draw() {
   glUseProgram(0);
   glBindTexture(GL_TEXTURE_2D, 0);
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  glDrawBuffer(GL_BACK);
 }
 
 void YUV420PGrabber::printShaderCompileInfo(GLuint shader) {

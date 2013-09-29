@@ -6,10 +6,6 @@ if not exist "%d%\build.debug" (
    mkdir %d%\build.debug
 )
 
-if not exist "%d%\..\..\bin\data" (
-   mkdir %d%\..\..\bin\data
-)
-
 cd %d%\build.debug
 cmake -DCMAKE_BUILD_TYPE=Debug ..
 cmake --build . --target install --config Debug

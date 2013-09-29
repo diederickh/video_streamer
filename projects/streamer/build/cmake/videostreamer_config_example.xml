@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<videostreamer>
+  <streams>
+    <stream>
+      <id>0</id>
+      <server>
+        <url>rtmp://192.168.0.188/flvplayback/livestream</url>
+      </server>
+      <video>
+        <width>320</width>
+        <height>240</height>
+        <fps>15</fps>
+      </video>
+      <audio>
+        <samplerate>0</samplerate>
+        <mode>0</mode>
+        <bitsize>0</bitsize>
+        <bitrate>0</bitrate> <!-- in kbps -->
+        <quality>0</quality>
+        <in_bitsize>0</in_bitsize>
+        <in_interleaved>0</in_interleaved>
+      </audio>
+    </stream>
+  </streams>
+</videostreamer>
+<!--
+      <audio>
+        <samplerate>44100</samplerate>
+        <mode>2</mode>
+        <bitsize>2</bitsize>
+        <bitrate>96</bitrate>
+        <quality>6</quality>
+        <in_bitsize>3</in_bitsize>
+        <in_interleaved>0</in_interleaved>
+      </audio>
+
+-->
+

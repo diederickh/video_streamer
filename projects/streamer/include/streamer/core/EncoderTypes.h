@@ -44,6 +44,7 @@ struct AVPacket {
 
 struct VideoSettings {
   VideoSettings();
+  void print();           /* print some debug info */
   bool validate();        /* returns if all settings have been set correctly */
   uint16_t width;         /* width of the incoming frames */
   uint16_t height;        /* height of the incoming frames */
@@ -54,6 +55,7 @@ struct VideoSettings {
 
 struct AudioSettings {
   AudioSettings();
+  void print();            /* print some debug info */
   bool validate();         /* validates the settings; if false is returned we cannot use them */
   uint32_t samplerate;     /* e.g. AV_AUDIO_SAMPLERATE_44100 */
   uint8_t mode;            /* e.g. AV_AUDIO_MODE_STEREO */
@@ -62,7 +64,6 @@ struct AudioSettings {
   uint16_t bitrate;        /* bitrate in kilobits */
   uint8_t in_bitsize;      /* e.g. AV_AUDIO_BITSIZE_S16, the format of the input data as passed to the audio encoder, when not specified we will use `bitsize`  */
   bool in_interleaved;     /* set to true when the input data is interleaved. defaults to true*/
-  
 };
 
 // -----------------------------------------
@@ -70,6 +71,7 @@ struct AudioSettings {
 struct ServerSettings {
   ServerSettings();
   bool validate();     /* returns true when all members have been set correctly */
+  void print();        /* print debug info */
   std::string url;
 };
 

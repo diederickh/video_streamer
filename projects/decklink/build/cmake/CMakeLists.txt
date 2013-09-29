@@ -13,7 +13,7 @@ else()
 endif()
 
 set(vd_app_name "decklink")
-set(vd_lib_name "decklink")
+set(vd_lib_name "libdecklink")
 set(vd_base_dir ${CMAKE_CURRENT_LIST_DIR}/../../)
 set(vd_src_dir ${vd_base_dir}/src/)
 set(vd_inc_dir ${vd_base_dir}/include)
@@ -33,12 +33,11 @@ add_custom_target(DeckLinkAPI
   )
 set_source_files_properties(${vd_sdk_dir}/DeckLinkAPI_i.c PROPERTIES GENERATED TRUE)
 
-
 set(vd_source_files
   ${vd_src_dir}/decklink/DeckLink.cpp
   ${vd_src_dir}/decklink/DeckLinkCard.cpp
   ${vd_src_dir}/decklink/DeckLinkCaptureCallback.cpp
-    ${vd_sdk_dir}/DeckLinkAPI_i.c                            # note that we have set that this is a generated file (see above)
+  ${vd_sdk_dir}/DeckLinkAPI_i.c                            # note that we have set that this is a generated file (see above)
 )
 
 set(vd_lib_source_files ${vd_source_files})
@@ -94,17 +93,20 @@ include_directories(
 
 set(CMAKE_INSTALL_PREFIX "${vd_install_dir}")
 
-add_executable(${vd_app_name} ${vd_source_files})
+if(NOT TARGET ${vd_app_name})
+  add_executable(${vd_app_name} ${vd_source_files})
+  target_link_libraries(${vd_app_name} ${vd_libs})
+  install(TARGETS ${vd_app_name} DESTINATION bin)
+endif()
 
-add_library(${vd_lib_name} ${vd_lib_source_files})
+if(NOT TARGET ${vd_lib_name})
+  add_library(${vd_lib_name} ${vd_lib_source_files})
+  
+endif()
 
 if(USE_CUSTOM_IDL)
   add_dependencies(${vd_app_name} DeckLinkAPI)
 endif()
-
-target_link_libraries(${vd_app_name} ${vd_libs})
-
-install(TARGETS ${vd_app_name} DESTINATION bin)
 
 install(TARGETS ${vd_lib_name} DESTINATION lib/${vd_triplet})
 

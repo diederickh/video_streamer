@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
 
-project(VideoStreamer)
-
 option(USE_GRAPH "Generate graphs to inspect the encoder (audio/video) and network i/o" ON)
 
 if(WIN32)
@@ -22,13 +20,19 @@ set(vs_base_dir ${CMAKE_CURRENT_LIST_DIR}/../../)
 set(vs_src_dir ${vs_base_dir}/src/streamer/)
 set(vs_inc_dir ${vs_base_dir}/include)
 set(vs_extern_dir ${vs_base_dir}/../../extern)
+set(vs_install_dir ${vs_base_dir}/../../install/)
 
-set(CMAKE_INSTALL_PREFIX ${vs_base_dir}/../../install/)
+set(CMAKE_INSTALL_PREFIX ${vs_install_dir})
 set(CMAKE_OSX_ARCHITECTURES ${vs_arch})
 
-include(${vs_base_dir}/../xmlconfig/build/cmake/CMakeLists.txt) # XMLConfig
+#include(${vs_base_dir}/../xmlconfig/build/cmake/CMakeLists.txt) # XMLConfig
+include(${vs_base_dir}/../tinylib/build/cmake/CMakeLists.txt) 
 
-include_directories(${vs_base_dir}/include)
+project(VideoStreamer)
+
+include_directories(
+  ${vs_base_dir}/include
+)
 
 add_definitions(
   -DVIDEO_STREAMER_LITTLE_ENDIAN
@@ -67,6 +71,7 @@ set(vs_source_files
   ${vs_src_dir}/daemon/Runner.cpp
   ${vs_src_dir}/daemon/Channel.cpp
   ${vs_src_dir}/videostreamer/VideoStreamer.cpp
+  ${vs_src_dir}/videostreamer/VideoStreamerConfig.cpp
 )
 
 if(USE_GRAPH)
@@ -104,13 +109,19 @@ set(vs_extern_include_dir ${vs_extern_dir}/${vs_triplet}/include/)
 set(vs_extern_lib_dir ${vs_extern_dir}/${vs_triplet}/lib/)
 set(vs_extern_bin_dir ${vs_extern_dir}/${vs_triplet}/bin/)
 
-include_directories(${vs_extern_include_dir})
+include_directories(
+  ${vs_extern_include_dir}
+  ${vs_install_dir}/include
+)
 
 add_executable(${vs_app_name} ${vs_src_dir}/main.cpp ${vs_source_files})
 
 add_library(${vs_lib_name} STATIC ${vs_source_files})
 
-add_dependencies(${vs_lib_name} xmlconfig)
+#add_dependencies(${vs_lib_name} xmlconfig)
+add_dependencies(${vs_lib_name} tinylib)
+
+message("++++++++++++++++++++ ${vs_extern_include_dir} +++++++++++++++++ ")
 
 # libraries
 if(APPLE)
@@ -170,3 +181,5 @@ install(TARGETS ${vs_app_name} RUNTIME DESTINATION bin  BUNDLE DESTINATION bin  
 install(TARGETS ${vs_lib_name} ARCHIVE DESTINATION lib/${vs_triplet}/)
 
 install(DIRECTORY ${vs_inc_dir}/ DESTINATION include)
+
+install(FILES ${CMAKE_CURRENT_LIST_DIR}/videostreamer_config_example.xml DESTINATION bin)

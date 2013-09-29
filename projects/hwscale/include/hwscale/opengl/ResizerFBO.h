@@ -28,7 +28,7 @@
 #  include <OpenGL/gl3.h>
 #  include <OpenGL/glext.h>
 #else 
-#   error "Only tested on mac"
+#   include <GLXW/glxw.h> 
 #endif
 
 #include <hwscale/opengl/YUV420PGrabber.h>

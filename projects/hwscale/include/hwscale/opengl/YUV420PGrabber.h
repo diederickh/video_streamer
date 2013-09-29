@@ -18,7 +18,7 @@
 #  include <OpenGL/gl3.h>
 #  include <OpenGL/glext.h>
 #else 
-#   error "Only tested on mac"
+#  include <GLXW/glxw.h>
 #endif
 
 extern "C" {
@@ -163,7 +163,7 @@ class YUV420PGrabber {
   void endGrab();
   void draw();
   void print(); /* print some debug info */
-  void start(); /* start captureing; sets the frame timeout */
+  void start(); /* start capturing; sets the frame timeout */
   bool hasNewFrame();
   void downloadTextures(); /* downloads the YUV420p into the planes you can get with getPlanes() */
   unsigned char* getPlaneY();

@@ -2,9 +2,12 @@ cmake_minimum_required(VERSION 2.8)
 
 project(hwscale)
 
-#include(${CMAKE_CURRENT_LIST_DIR}/../../../roxlu/lib/build/cmake/CMakeLists.txt)
-
-option(USE_64BIT "Compile as 64bit library" ON)
+option(USE_HWSCALE_TEST "Build tests" OFF)
+if(WIN32)
+  option(USE_64BIT "Compile as 64bit library" OFF)
+else()
+  option(USE_64BIT "Compile as 64bit library" ON)
+endif()
 
 if(USE_64BIT)
   set(hws_arch "x86_64")
@@ -21,13 +24,12 @@ set(hws_inc_dir ${hws_base_dir}/include)
 set(hws_ext_dir ${hws_base_dir}/../../extern/)
 
 set(hws_source_files
-  ${hws_test_src_dir}/opengl_yuv420p/main.cpp
+#  ${hws_test_src_dir}/opengl_yuv420p/main.cpp
   ${hws_src_dir}/hwscale/opengl/YUV420PGrabber.cpp
   ${hws_src_dir}/hwscale/opengl/ResizerFBO.cpp
 )
 
 set(CMAKE_INSTALL_PREFIX ${hws_base_dir}/../../install/)
-set(CMAKE_OSX_ARCHITECTURES ${hws_arch})
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   set(hws_compiler "clang")
@@ -42,6 +44,7 @@ elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 endif()
 
 if(APPLE)
+  set(CMAKE_OSX_ARCHITECTURES ${hws_arch})
   set(hws_platform "mac")
 elseif(WIN32)
   set(hws_platform "win")
@@ -72,8 +75,10 @@ if(APPLE)
     ${fr_iokit} 
     ${fr_cf}
     ${fr_cocoa}
+    ${fr_opengl}/Headers/
     ) 
-
+elif(WIN32)
+  
 endif()
 
 add_definitions(
@@ -84,17 +89,17 @@ add_definitions(
 include_directories(
   ${hws_extern_include_dir} 
   ${hws_inc_dir}
-  ${fr_opengl}/Headers/
 )
 
 # add_executable(${hws_name} ${hws_source_files})
-# 
-# target_link_libraries(${hws_name} ${hws_libs})
-# 
-# install(TARGETS ${hws_name}
-#   RUNTIME DESTINATION bin
-#   BUNDLE DESTINATION bin
-#   )
-# 
-include(${hws_tests_dir}/CMakeLists.txt)
+
+add_library(libhwscale ${hws_source_files})
+
+install(TARGETS libhwscale DESTINATION lib/${hws_triplet}/)
+
+install(DIRECTORY ${hws_inc_dir}/ DESTINATION include)
+
+if(USE_HWSCALE_TESTS) 
+  include(${hws_tests_dir}/CMakeLists.txt)
+endif()
 

@@ -18,9 +18,10 @@ extern "C" {
 #include <streamer/flv/FLVReader.h>
 #include <streamer/flv/FLVWriter.h>
 #include <streamer/videostreamer/VideoStreamer.h>
+#include <streamer/videostreamer/VideoStreamerConfig.h>
 #include <streamer/daemon/Daemon.h>
 #include <streamer/daemon/Channel.h>
-
+#include <tinylib/tinylib.h>
 #include <rapidxml.hpp>
 using namespace rapidxml;
 
@@ -28,7 +29,8 @@ using namespace rapidxml;
 # include <streamer/utils/Graph.h>
 #endif
 
-#define TEST_DAEMON 1
+#define TEST_STREAMER_XMLCONFIG 1 /* tests loading a xml file for The VideoStreamer instead of providing the objects manually */
+#define TEST_DAEMON 0
 #define TEST_VIDEOSTREAMER 0
 #define TEST_RTMP_WRTIER 0
 #define TEST_FLV_READER 0
@@ -766,6 +768,28 @@ printf("%s\n", root->name());
 #endif
   
 #endif
+
+#if TEST_STREAMER_XMLCONFIG
+  std::string exe_dir = rx_get_exe_path();
+
+  VideoStreamerConfig vconf;
+  if(!vconf.load(exe_dir +"videostreamer_config_example.xml")) {
+    printf("error: cannot load the example streamer configuration.\n");
+    ::exit(EXIT_FAILURE);
+  }
+
+  StreamerConfiguration* sc = vconf.getByID(0);
+  if(!sc) {
+    printf("error: cannot find streamer config for id = 0.\n");
+    ::exit(EXIT_FAILURE);
+  }
+
+  if(!sc->validate()) {
+    printf("error: cannot validate the configs.\n");
+  }
+
+  sc->print();
+#endif // TEST_STREAMER_XMLCONFIG
 
   return 1;
 }

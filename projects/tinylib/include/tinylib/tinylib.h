@@ -34,6 +34,9 @@
   prog = rx_create_program(vert, frag);                        - create a problem - DOES NOT LINK
 
 
+  UTILS
+  -----------------------------------------------------------------------------------
+  std::string path = rx_get_exe_path();                 - Returns the path to the exe 
 
  */
 #ifndef ROXLU_TINYLIB_H
@@ -46,7 +49,7 @@
 #  include <OpenGL/gl3.h>
 #  include <OpenGL/glext.h>
 #else 
-#   error "Only tested on mac"
+#  include <GLXW/glxw.h>
 #endif
 
 
@@ -234,5 +237,71 @@ static GLuint rx_create_shader(GLenum type, const char* src) {
   rx_print_shader_compile_info(s);
   return s;
 }
+
+// UTILS
+// ---------------------------------------------------------------------------
+#if defined(_WIN32) // rx_get_exe_path()
+static std::string rx_get_exe_path() {
+  char buffer[MAX_PATH];
+
+  // Try to get the executable path with a buffer of MAX_PATH characters.
+  DWORD result = ::GetModuleFileNameA(nullptr, buffer, static_cast<DWORD>(MAX_PATH));
+  if(result == 0) {
+    return "";
+  }
+
+  std::string::size_type pos = std::string(buffer).find_last_of( "\\/" );
+
+  return std::string(buffer).substr(0, pos) +"\\";
+}
+#elif defined(__APPLE__) // rx_get_exe_path()
+static std::string rx_get_exe_path() {
+  char buffer[1024];
+  uint32_t usize = sizeof(buffer);;
+
+  int result;
+  char* path;
+  char* fullpath;
+
+  result = _NSGetExecutablePath(buffer, &usize);
+  if (result) {
+    return "";
+  }
+
+  path = (char*)malloc(2 * PATH_MAX);
+  fullpath = realpath(buffer, path);
+
+  if (fullpath == NULL) {
+    free(path);
+    return "";
+  }
+  strncpy(buffer, fullpath, usize);
+
+  const char* dn = dirname(buffer);
+  usize = strlen(dn);
+  std::string ret(dn, usize) ;
+  ret.push_back('/');
+
+  free(path);
+  return ret;
+}
+#elif defined(__linux) // rx_get_exe_path()
+static std::string rx_get_exe_path() {
+  char buffer[MAX_PATH];
+  size_t size = MAX_PATH;
+  ssize_t n = readlink("/proc/self/exe", buffer, size - 1);
+  if (n <= 0) {
+    return "";
+  }
+  buffer[n] = '\0';
+
+
+  const char* dn = dirname(buffer);
+  size = strlen(dn);
+  std::string ret(dn, size) ;
+  ret.push_back('/');
+  return ret;
+}
+#endif // rx_get_exe_path()
 
 #endif

@@ -4,6 +4,8 @@
 #include <xmlconfig/Config.h>
 #include <map>
 
+// @todo - replace this with VideoStreamerConfig!
+
 // ----------------------------------------------
 
 struct StreamConfig {
