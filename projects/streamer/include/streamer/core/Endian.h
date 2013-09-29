@@ -74,6 +74,7 @@ static inline uint64_t endian_swap64(uint64_t value) {
 #  define FromLE32(n) (n)
 #  define FromLE64(n) (n)
 #else  
+#  error "We are pretty sure you're on a Little Endian machine .. @todo - we should use a runtime check or cmake check"
 #  define ToBE16(n) (n)
 #  define ToBE24(n) (n)
 #  define ToBE32(n) (n)

@@ -1,5 +1,10 @@
 cmake_minimum_required(VERSION 2.8)
 
+# Creates:
+# ${install_dir}          - the install prefix
+# ${extern_dir}           - path to the extern libraries (root)
+# ${extern_include_dirs}  - include directories in for the extern libraries
+
 if(USE_64BIT)
   set(tri_arch "x86_64")
 else()
@@ -31,3 +36,11 @@ set(tri_triplet "${tri_platform}-${tri_compiler}-${tri_arch}")
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   set(tri_triplet "${tri_triplet}d")
 endif()
+
+set(install_dir ${CMAKE_CURRENT_LIST_DIR}/../../install/${tri_triplet})
+
+set(extern_dir ${CMAKE_CURRENT_LIST_DIR}/../../extern/${tri_triplet})
+
+set(extern_include_dirs ${extern_dir}/include/)
+
+set(CMAKE_INSTALL_PREFIX ${install_dir})

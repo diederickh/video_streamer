@@ -220,17 +220,6 @@ int main() {
       if(new_frame) {
         fast_upload.update(dest_y, dest_u, dest_v);
         new_frame = false;
-
-        uint32_t timestamp = streamer.getTimeStamp();
-        uint32_t timediff = timestamp - start_time;
-
-        AVPacket* pkt = new AVPacket();
-        pkt->setTimeStamp(timestamp);
-        pkt->makeVideoPacket();
-        std::copy(dest_y, dest_y + 1382400, std::back_inserter(pkt->data));
-        // std::copy(grabber.getPlaneY(), grabber.getPlaneY() + grabber.getNumBytes(), std::back_inserter(pkt->data));
-        streamer.addVideo(pkt);
-
       }
     }
     uv_mutex_unlock(&frame_mutex);
@@ -260,6 +249,16 @@ int main() {
 
       grabber.downloadTextures();
 
+        uint32_t timestamp = streamer.getTimeStamp();
+        uint32_t timediff = timestamp - start_time;
+
+        AVPacket* pkt = new AVPacket();
+        printf("-- %d\n", timestamp);
+        pkt->setTimeStamp(timestamp);
+        pkt->makeVideoPacket();
+        //std::copy(dest_y, dest_y + 1382400, std::back_inserter(pkt->data));
+        std::copy(grabber.getPlaneY(), grabber.getPlaneY() + grabber.getNumBytes(), std::back_inserter(pkt->data));
+        streamer.addVideo(pkt);
       
     }
 

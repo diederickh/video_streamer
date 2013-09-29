@@ -1,21 +1,14 @@
 cmake_minimum_required(VERSION 2.8)
 
-project(XMLConfig)
+# ${xmlconfig_source_dir}    - path to source dir
+# ${xmlconfig_souce_files}   - compile these source files
+# ${xmlconfig_include_dirs}  - add these to your include directories
 
-set(xc_base_dir ${CMAKE_CURRENT_LIST_DIR}/../../)
+include(${CMAKE_CURRENT_LIST_DIR}/../../../../tools/cmake/Triplet.cmake)
 
-include(${xc_base_dir}/../../tools/cmake/Triplet.cmake)  # include triplet
+set(xmlconfig_source_dir ${CMAKE_CURRENT_LIST_DIR}/../../src/xmlconfig)
 
-include_directories(
-  ${xc_base_dir}/include 
-  ${xc_base_dir}/../../install/include
-  ${xc_base_dir}/../../extern/${tri_triplet}/include
-)
+set(xmlconfig_include_dirs ${CMAKE_CURRENT_LIST_DIR}/../../include/)
 
-add_library(xmlconfig ${xc_base_dir}/src/xmlconfig/Config.cpp)
+set(xmlconfig_source_files  ${xmlconfig_source_dir}/Config.cpp)
 
-set(CMAKE_INSTALL_PREFIX ${xc_base_dir}/../../install/${tri_triplet})
-
-install(TARGETS xmlconfig DESTINATION lib/)
-
-install(DIRECTORY ${xc_base_dir}/include/ DESTINATION include)
