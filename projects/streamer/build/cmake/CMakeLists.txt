@@ -22,7 +22,7 @@ set(vs_inc_dir ${vs_base_dir}/include)
 set(vs_extern_dir ${vs_base_dir}/../../extern)
 set(vs_install_dir ${vs_base_dir}/../../install/)
 
-set(CMAKE_INSTALL_PREFIX ${vs_install_dir})
+
 set(CMAKE_OSX_ARCHITECTURES ${vs_arch})
 
 #include(${vs_base_dir}/../xmlconfig/build/cmake/CMakeLists.txt) # XMLConfig
@@ -105,21 +105,27 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   set(vs_app_name "video_streamer_debug")
 endif()
 
+set(CMAKE_INSTALL_PREFIX ${vs_install_dir}/${vs_triplet}/)
+
 set(vs_extern_include_dir ${vs_extern_dir}/${vs_triplet}/include/)
 set(vs_extern_lib_dir ${vs_extern_dir}/${vs_triplet}/lib/)
 set(vs_extern_bin_dir ${vs_extern_dir}/${vs_triplet}/bin/)
 
 include_directories(
   ${vs_extern_include_dir}
-  ${vs_install_dir}/include
+  ${vs_install_dir}/${vs_triplet}/include
 )
 
 add_executable(${vs_app_name} ${vs_src_dir}/main.cpp ${vs_source_files})
 
 add_library(${vs_lib_name} STATIC ${vs_source_files})
 
-#add_dependencies(${vs_lib_name} xmlconfig)
-add_dependencies(${vs_lib_name} tinylib)
+
+  # doesnt seem to work ...
+#  add_dependencies(${vs_app_name} xmlconfig tinylib)
+#  add_dependencies(${vs_lib_name} xmlconfig)
+#  add_dependencies(${vs_lib_name} tinylib)
+
 
 message("++++++++++++++++++++ ${vs_extern_include_dir} +++++++++++++++++ ")
 
@@ -142,9 +148,9 @@ if(APPLE)
 endif()
 
 if(WIN32)
-  add_definitions(-DWIN32_LEAN_AND_MEAN)
+  #add_definitions(-DWIN32_LEAN_AND_MEAN)
   set(vs_libs
-    ${vs_extern_lib_dir}/libx264.dll.a
+    ${vs_extern_lib_dir}/libx264-138.lib
     ${vs_extern_lib_dir}/libuv.lib
     ${vs_extern_lib_dir}/zdll.lib
     ${vs_extern_lib_dir}/libmp3lame.lib
@@ -156,13 +162,13 @@ if(WIN32)
     psapi.lib
     iphlpapi.lib
     Winmm.lib  # for librtmp timeGetTime
-    ${vs_base_dir}/../../install/lib/${vs_triplet}/xmlconfig.lib
+    ${vs_base_dir}/../../install/${vs_triplet}/lib/xmlconfig.lib
     )
 
   set(vs_extern_install_files
     ${vs_extern_bin_dir}/libeay32.dll
     ${vs_extern_bin_dir}/libmp3lame.dll
-    ${vs_extern_bin_dir}/libuv.dll
+#    ${vs_extern_bin_dir}/libuv.dll
     ${vs_extern_bin_dir}/libx264-138.dll
     ${vs_extern_bin_dir}/nanomsg.dll
     ${vs_extern_bin_dir}/ssleay32.dll
@@ -178,7 +184,7 @@ target_link_libraries(${vs_app_name} ${vs_libs})
 
 install(TARGETS ${vs_app_name} RUNTIME DESTINATION bin  BUNDLE DESTINATION bin  )
 
-install(TARGETS ${vs_lib_name} ARCHIVE DESTINATION lib/${vs_triplet}/)
+install(TARGETS ${vs_lib_name} ARCHIVE DESTINATION lib/)
 
 install(DIRECTORY ${vs_inc_dir}/ DESTINATION include)
 

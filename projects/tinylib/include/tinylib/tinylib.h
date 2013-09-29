@@ -44,6 +44,10 @@
 
 #include <cmath>
 #include <iostream>
+#include <assert.h>
+#include <iterator>
+#include <algorithm>
+#include <string>
 
 #if defined(__APPLE__)
 #  include <OpenGL/gl3.h>

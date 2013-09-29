@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <iostream>
 #include <streamer/videostreamer/VideoStreamer.h>
+#include <streamer/videostreamer/VideoStreamerConfig.h>
 
 VideoStreamer::VideoStreamer() 
   :flv_writer(flv_bitstream)
@@ -27,6 +28,40 @@ VideoStreamer::~VideoStreamer() {
   }
 
   time_started = 0;
+}
+
+bool VideoStreamer::loadSettings(std::string filepath) {
+
+  if(!filepath.size()) {
+    printf("error: invalid settings filepath: '%s'\n", filepath.c_str());
+    return false;
+  }
+
+  VideoStreamerConfig cfg;
+  if(!cfg.load(filepath)) {
+    return false;
+  }
+
+  if(!cfg.size()) {
+    printf("error: no configurations found.\n");
+    return false;
+  }
+
+  StreamerConfiguration* sc = cfg[0]; // we just pick the first found config
+
+  if(sc->hasAudio()) {
+    setAudioSettings(sc->audio);
+  }
+
+  if(sc->hasVideo()) {
+    setVideoSettings(sc->video);
+  }
+
+  if(sc->hasServer()) {
+    setServerSettings(sc->server);
+  }
+
+  return true;
 }
 
 bool VideoStreamer::setup() {

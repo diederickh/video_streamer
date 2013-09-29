@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 2.8)
 
 project(hwscale)
 
+include(${CMAKE_CURRENT_LIST_DIR}/../../../../tools/cmake/Triplet.cmake)  # include triplet
+
 option(USE_HWSCALE_TEST "Build tests" OFF)
 if(WIN32)
   option(USE_64BIT "Compile as 64bit library" OFF)
@@ -29,38 +31,16 @@ set(hws_source_files
   ${hws_src_dir}/hwscale/opengl/ResizerFBO.cpp
 )
 
-set(CMAKE_INSTALL_PREFIX ${hws_base_dir}/../../install/)
 
-if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-  set(hws_compiler "clang")
-elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-  set(hws_compiler "gcc")
-elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-  if(MSVC10)
-    set(hws_compiler "vs2010")
-  else()
-    set(hws_compiler "vs2012")
-  endif()
-endif()
 
-if(APPLE)
-  set(CMAKE_OSX_ARCHITECTURES ${hws_arch})
-  set(hws_platform "mac")
-elseif(WIN32)
-  set(hws_platform "win")
-else()
-  set(hws_platform "unix")
-endif()
-
-set(hws_triplet "${hws_platform}-${hws_compiler}-${hws_arch}")
+set(CMAKE_INSTALL_PREFIX ${hws_base_dir}/../../install/${tri_triplet})
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-  set(hws_triplet "${hws_triplet}d")
   set(hws_name "hwscale_debug")
 endif()
 
-set(hws_extern_include_dir ${hws_ext_dir}/${hws_triplet}/include/)
-set(hws_extern_lib_dir ${hws_ext_dir}/${hws_triplet}/lib/)
+set(hws_extern_include_dir ${hws_ext_dir}/${tri_triplet}/include/)
+set(hws_extern_lib_dir ${hws_ext_dir}/${tri_triplet}/lib/)
 
 if(APPLE)
   find_library(fr_opengl OpenGL)
@@ -95,7 +75,7 @@ include_directories(
 
 add_library(libhwscale ${hws_source_files})
 
-install(TARGETS libhwscale DESTINATION lib/${hws_triplet}/)
+install(TARGETS libhwscale DESTINATION lib/)
 
 install(DIRECTORY ${hws_inc_dir}/ DESTINATION include)
 

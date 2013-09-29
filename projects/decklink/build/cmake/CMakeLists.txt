@@ -91,7 +91,7 @@ include_directories(
   ${vd_decklink_output_dir}
 )
 
-set(CMAKE_INSTALL_PREFIX "${vd_install_dir}")
+set(CMAKE_INSTALL_PREFIX "${vd_install_dir}/${vd_triplet}/")
 
 if(NOT TARGET ${vd_app_name})
   add_executable(${vd_app_name} ${vd_source_files})
@@ -108,7 +108,7 @@ if(USE_CUSTOM_IDL)
   add_dependencies(${vd_app_name} DeckLinkAPI)
 endif()
 
-install(TARGETS ${vd_lib_name} DESTINATION lib/${vd_triplet})
+install(TARGETS ${vd_lib_name} DESTINATION lib)
 
 install(DIRECTORY ${vd_inc_dir}/ DESTINATION include)
 
@@ -117,6 +117,6 @@ install(FILES ${vd_sdk_dir}/DeckLinkAPI.h DESTINATION include)
 install(FILES ${vd_sdk_dir}/bin/DeckLinkAPI.dll DESTINATION bin)
 
 if(WIN32) 
-  install(FILES ${vd_extern_bin_dir}/libuv.dll DESTINATION bin)
+#  install(FILES ${vd_extern_bin_dir}/libuv.dll DESTINATION bin)
 endif()
 

@@ -55,6 +55,7 @@ class VideoStreamer {
   VideoStreamer();
   ~VideoStreamer();
 
+  bool loadSettings(std::string filepath); /* instead of passing the settings to setServerSettings(), setVideoSettings() and setAudioSettings(), you can load them from a xml file. */
   void setServerSettings(ServerSettings ss);
   void setVideoSettings(VideoSettings vs);
   void setAudioSettings(AudioSettings as);
@@ -71,6 +72,8 @@ class VideoStreamer {
   void addAudio(AVPacket* pkt);
 
   uint32_t getTimeStamp(); /* get the current timestamp in mills, relative from the 'start' timestamp */
+  uint16_t getVideoWidth(); /* get the width of the output video, as defined in the settings - width used by encoder */
+  uint16_t getVideoHeight(); /* get the height of the output video, as defined in the settings - height used by encoder */
 
  private:
   bool usesVideo(); /* returns true when video encoding is used */
@@ -135,6 +138,13 @@ inline bool VideoStreamer::isStarted() {
 
 inline uint32_t VideoStreamer::getTimeStamp() {
   return (uv_hrtime() - time_started) / 1000000;
+}
+
+inline uint16_t VideoStreamer::getVideoWidth() {
+  return video_settings.width;
+}
+inline uint16_t VideoStreamer::getVideoHeight() {
+  return video_settings.height;
 }
 
 #endif

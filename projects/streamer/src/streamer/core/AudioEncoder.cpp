@@ -2,7 +2,11 @@
 #include <streamer/core/AudioEncoder.h>
 #if defined(USE_GRAPH)
 #  include <streamer/utils/Graph.h>
+
+extern "C" {
 #  include <uv.h>
+}
+
 #endif
 
 #define AUDIO_USE_DATA_PTR 0

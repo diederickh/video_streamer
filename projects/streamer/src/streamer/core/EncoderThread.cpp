@@ -64,7 +64,6 @@ void encoder_thread_func(void* user) {
       enc.work.clear();
     }
     uv_mutex_unlock(&enc.mutex);
-
     // process the new work
     for(std::vector<AVPacket*>::iterator it = todo.begin(); it != todo.end(); ++it) {
       AVPacket& pkt = **it;
@@ -173,14 +172,14 @@ void EncoderThread::addPacket(AVPacket* pkt) {
   }
 #endif
 
-
   uv_mutex_lock(&mutex);
   {
     work.push_back(pkt);
   }
+
 #if USE_CV
   uv_cond_signal(&cv);
 #endif
-  uv_mutex_unlock(&mutex);
 
+  uv_mutex_unlock(&mutex);
 }

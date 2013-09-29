@@ -126,8 +126,10 @@ bool VideoEncoder::initializeX264() {
 bool VideoEncoder::initializePic() {
 
   unsigned int csp = (vflip) ? X264_CSP_I420 | X264_CSP_VFLIP : X264_CSP_I420;
+  //printf("ve.width : %d\n", settings.width);
+  //printf("ve.height: %d\n", settings.height);
 
-#if 0  
+#if 0 
   int r = x264_picture_alloc(&pic_out, csp, settings.width, settings.height);
   if(r != 0) {
     printf("error: cannot allocate the pic_out.\n");
@@ -149,14 +151,14 @@ bool VideoEncoder::initializePic() {
 bool VideoEncoder::encodePacket(AVPacket* p, FLVTag& tag) {
   assert(p);
   assert(encoder);
-
+  printf("VideoEncoder (1)\n");
   size_t nbytes_y = settings.width * settings.height;
   size_t nbytes_uv = nbytes_y / 4;
-
+  printf("VideoEncoder (2)\n");
   pic_in.img.plane[0] = &p->data.front();
   pic_in.img.plane[1] = &p->data[nbytes_y];
   pic_in.img.plane[2] = &p->data[nbytes_y + nbytes_uv];
-
+  printf("VideoEncoder (3)\n");
   pic_in.i_pts = frame_num; // p->timestamp; // frame_num;
   frame_num++;
 
@@ -165,12 +167,19 @@ bool VideoEncoder::encodePacket(AVPacket* p, FLVTag& tag) {
 #if defined(USE_GRAPH)
   uint64_t enc_start = uv_hrtime() / 1000000;
 #endif
+  printf("VideoEncoder (4a)\n");
+  printf("encoder: %p\n", encoder);
+  printf("nal: %p\n", nal);
+  printf("nals_count: %d\n", nals_count);
+  printf("pic_in: %p\n", &pic_in);
+  printf("pic_out: %p\n", &pic_out);
   int frame_size = x264_encoder_encode(encoder, &nal, &nals_count, &pic_in, &pic_out);
+  printf("VideoEncoder (4b)\n");
+
 #if defined(USE_GRAPH)
   frames_graph["enc_video"] += ((uv_hrtime()/1000000) - enc_start);
   frames_graph["enc_audio_video"] += ((uv_hrtime()/1000000) - enc_start);
 #endif
-  
   if(frame_size < 0) {
     printf("error: x264_encoder_encode failed.\n");
     return false;
@@ -191,7 +200,9 @@ bool VideoEncoder::encodePacket(AVPacket* p, FLVTag& tag) {
   tag.bs.clear();
   for(int i = 0; i < nals_count; ++i) {
     tag.bs.putBytes(nal[i].p_payload, nal[i].i_payload);
+#if USE_GRAPH    
     network_graph["h264"] += nal[i].i_payload;
+#endif
   }
   tag.setData(tag.bs.getPtr(), tag.bs.size());
 #endif

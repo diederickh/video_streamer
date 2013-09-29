@@ -14,8 +14,8 @@ include_directories(
 
 add_library(xmlconfig ${xc_base_dir}/src/xmlconfig/Config.cpp)
 
-set(CMAKE_INSTALL_PREFIX ${xc_base_dir}/../../install)
+set(CMAKE_INSTALL_PREFIX ${xc_base_dir}/../../install/${tri_triplet})
 
-install(TARGETS xmlconfig DESTINATION lib/${tri_triplet})
+install(TARGETS xmlconfig DESTINATION lib/)
 
 install(DIRECTORY ${xc_base_dir}/include/ DESTINATION include)

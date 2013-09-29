@@ -80,6 +80,7 @@ void error_callback(int err, const char* desc);
 void resize_callback(GLFWwindow* window, int width, int height);
 void frame_callback(IDeckLinkVideoInputFrame* vframe, IDeckLinkAudioInputPacket* aframe, void* user);
 
+VideoStreamer streamer;
 YUV420PGrabber grabber;
 FastI420Upload fast_upload;
 uint8_t yuv420p[1382400]; // our buffer for yuv420p 1280x720
@@ -159,14 +160,29 @@ int main() {
   }
 #endif
 
-  if(!grabber.setup(1280, 720, 640, 360, 25)) {
+  // load settings.
+  std::string config_path = rx_get_exe_path() +"streamer.xml";
+  if(!streamer.loadSettings(config_path)) {
+    printf("error: could not load the settings for the streamer.\n");
+    ::exit(EXIT_FAILURE);
+  }
+  if(!streamer.setup()) {
+    printf("error: could not setup the streamer.\n");
+    ::exit(EXIT_FAILURE);
+  }
+  if(!streamer.start()) {
+    printf("error: cannot start streamer.\n");
+    ::exit(EXIT_FAILURE);
+  }
+
+  if(!grabber.setup(w, h, streamer.getVideoWidth(), streamer.getVideoHeight(), 25)) {
     printf("error: cannot setup the yuv grabber.\n");
     ::exit(EXIT_FAILURE);
   }
 
   uv_mutex_init(&frame_mutex);
 
-  if(!fast_upload.setup(1280, 720)) {
+  if(!fast_upload.setup(w, h)) {
     ::exit(EXIT_FAILURE);
   }
 
@@ -174,8 +190,6 @@ int main() {
     ::exit(EXIT_FAILURE);
   }
 
-  w = 1280;
-  h = 720;
   uint8_t* dest_y = yuv420p;
   uint8_t* dest_u = &yuv420p[(w * h)];
   uint8_t* dest_v = &yuv420p[(uint32_t)((w * h) + (w >> 1 ) * (h >> 1))];
@@ -191,10 +205,10 @@ int main() {
   glUniform1i(glGetUniformLocation(prog, "y_tex"), 0);
   glUniform1i(glGetUniformLocation(prog, "u_tex"), 1);
   glUniform1i(glGetUniformLocation(prog, "v_tex"), 2);
-  
 
   grabber.start();
 
+  uint32_t start_time = grabber.getTimeStamp();
 
   while(!glfwWindowShouldClose(win)) {
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -206,13 +220,23 @@ int main() {
       if(new_frame) {
         fast_upload.update(dest_y, dest_u, dest_v);
         new_frame = false;
+
+        uint32_t timestamp = streamer.getTimeStamp();
+        uint32_t timediff = timestamp - start_time;
+
+        AVPacket* pkt = new AVPacket();
+        pkt->setTimeStamp(timestamp);
+        pkt->makeVideoPacket();
+        std::copy(dest_y, dest_y + 1382400, std::back_inserter(pkt->data));
+        // std::copy(grabber.getPlaneY(), grabber.getPlaneY() + grabber.getNumBytes(), std::back_inserter(pkt->data));
+        streamer.addVideo(pkt);
+
       }
     }
     uv_mutex_unlock(&frame_mutex);
     
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     
-
     if(grabber.hasNewFrame()) {
 
       printf("grabbing!\n");
@@ -233,8 +257,10 @@ int main() {
       glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
       grabber.endGrab();
-      //    grabber.draw();          
+
       grabber.downloadTextures();
+
+      
     }
 
 #if 1

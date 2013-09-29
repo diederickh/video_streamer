@@ -57,16 +57,22 @@
 #ifndef ROXLU_VIDEOSTREAMER_STREAMER_CONFIG_H
 #define ROXLU_VIDEOSTREAMER_STREAMER_CONFIG_H
 
+#include <iostream>
 #include <string>
 #include <vector>
 #include <stdint.h>
 
 #include <streamer/core/EncoderTypes.h>
 
+// -------------------------------------------------
+
 struct StreamerConfiguration {
   StreamerConfiguration();
-  bool validate();
-  void print();
+  bool validate(); /* validate -all- settings */
+  void print(); /* print some debug info */
+  bool hasVideo(); /* when one of the video settings has been set this will return true; this does not validate the settings. */
+  bool hasAudio(); /* when one of the audio settings has been set this will return true; this does not validate the settings. */
+  bool hasServer(); /* when one of the server settings has been set this will return true; this does not validate the settings. */
 
   uint32_t id;
   AudioSettings audio;
@@ -74,12 +80,16 @@ struct StreamerConfiguration {
   ServerSettings server;
 };
 
+// -------------------------------------------------
+
 class VideoStreamerConfig {
  public:
   VideoStreamerConfig();
   ~VideoStreamerConfig();
   bool load(std::string filepath); /* load the xml from a full path */
   StreamerConfiguration* getByID(uint32_t id); /* each stream must have a unique id, you can use this function to get the configuration for the given ID, if not found we return NULL */
+  size_t size(); /* returns the number of stream configs */
+  StreamerConfiguration* operator[](size_t dx);
  public:
   std::vector<StreamerConfiguration*> configs; /* VideoStreamerConfig takes ownership of all configs and will destory them when the class is destroyed */
 };
@@ -93,5 +103,19 @@ inline StreamerConfiguration* VideoStreamerConfig::getByID(uint32_t id) {
   }
   return NULL;
 }
+
+inline StreamerConfiguration* VideoStreamerConfig::operator[](size_t dx) {
+  if(dx >= configs.size()) {
+    printf("error: trying to get a configuration which does not exist.\n");
+    return NULL;
+  }
+  return configs[dx];
+}
+
+inline size_t VideoStreamerConfig::size() {
+  return configs.size();
+}
+
+// -------------------------------------------------
 
 #endif
