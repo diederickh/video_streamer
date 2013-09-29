@@ -208,12 +208,14 @@ bool YUV420PGrabber::setupTextures() {
 
   glGenTextures(1, &u_tex);
   glBindTexture(GL_TEXTURE_2D, u_tex);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, uv_w, uv_h, 0, GL_RED, GL_UNSIGNED_BYTE, NULL);
+  //glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, uv_w, uv_h, 0, GL_RED, GL_UNSIGNED_BYTE, NULL);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, vid_w, vid_h, 0, GL_RED, GL_UNSIGNED_BYTE, NULL);
   setTextureParameters();
 
   glGenTextures(1, &v_tex);
   glBindTexture(GL_TEXTURE_2D, v_tex);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, uv_w, uv_h, 0, GL_RED, GL_UNSIGNED_BYTE, NULL);
+  //  glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, uv_w, uv_h, 0, GL_RED, GL_UNSIGNED_BYTE, NULL);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, vid_w, vid_h, 0, GL_RED, GL_UNSIGNED_BYTE, NULL);
   setTextureParameters();
 
   return true;
@@ -345,18 +347,22 @@ bool YUV420PGrabber::setupShaders() {
 void YUV420PGrabber::beginGrab() {
   assert(scene_fbo && win_w && win_h);
 
+  glDisable(GL_DEPTH_TEST);
+
   GLenum drawbufs[] = { GL_COLOR_ATTACHMENT0 } ; 
-  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, scene_fbo);
+  glBindFramebuffer(GL_FRAMEBUFFER, scene_fbo);
   glDrawBuffers(1, drawbufs);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glViewport(0,0, win_w, win_h);
 }
 
 void YUV420PGrabber::endGrab() {
+
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, scene_tex);
 
   bindVAO();
+
   {
     // render Y plane
     GLenum drawbufs[] = { GL_COLOR_ATTACHMENT1 };
@@ -367,7 +373,7 @@ void YUV420PGrabber::endGrab() {
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
   }
 
-  glDisable(GL_DEPTH_TEST);
+
   {
     // render U-V planes
     GLenum drawbufs[] = { GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 }; 
@@ -377,7 +383,8 @@ void YUV420PGrabber::endGrab() {
     glUseProgram(prog_uv);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
   }
-  glEnable(GL_DEPTH_TEST);  
+
+  //glEnable(GL_DEPTH_TEST);  
 
   unbindVAO();
 
@@ -386,6 +393,7 @@ void YUV420PGrabber::endGrab() {
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
   glDrawBuffer(GL_BACK);
   glViewport(0,0, win_w, win_h);
+
 }
 
 void YUV420PGrabber::downloadTextures() {
@@ -416,7 +424,9 @@ void YUV420PGrabber::draw() {
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
   glDrawBuffer(GL_BACK);
+  glDisable(GL_DEPTH_TEST);  
   glViewport(0, 0, win_w, win_h);
+  // printf("win: %d x %d\n", win_w, win_h);
 
   bindVAO();
 
@@ -424,13 +434,16 @@ void YUV420PGrabber::draw() {
   glBindTexture(GL_TEXTURE_2D, scene_tex);
 
   glUseProgram(prog_pt);
+
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
   unbindVAO();
-  glUseProgram(0);
-  glBindTexture(GL_TEXTURE_2D, 0);
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-  glDrawBuffer(GL_BACK);
+
+  //glUseProgram(0);
+  //glBindTexture(GL_TEXTURE_2D, 0);
+  //glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  //glDrawBuffer(GL_BACK);
+  //glEnable(GL_DEPTH_TEST);
 }
 
 void YUV420PGrabber::printShaderCompileInfo(GLuint shader) {

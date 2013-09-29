@@ -60,7 +60,7 @@ bool RTMPWriter::initialize() {
     return false;
   }
 
-  #if 0
+  #if 1
   std::string username = "123194";
   std::string password = "ROXLU";
   rtmp->Link.pubUser.av_val = (char*)username.c_str();

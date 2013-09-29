@@ -84,7 +84,7 @@ bool VideoEncoder::initializeX264() {
   //p->b_vfr_input = 1; // if 1, use timebase and timestamps for ratecontrol purposes
 
 #define USE_CONSTANT_QUALITY 0
-#define USE_BITRATE_QUALITY 0
+#define USE_BITRATE_QUALITY 1
 
 #if USE_CONSTANT_QUALITY
   p->rc.i_rc_method = X264_RC_CQP;

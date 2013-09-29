@@ -249,34 +249,38 @@ int main() {
 
       grabber.downloadTextures();
 
-        uint32_t timestamp = streamer.getTimeStamp();
-        uint32_t timediff = timestamp - start_time;
-
-        AVPacket* pkt = new AVPacket();
-        printf("-- %d\n", timestamp);
-        pkt->setTimeStamp(timestamp);
-        pkt->makeVideoPacket();
-        //std::copy(dest_y, dest_y + 1382400, std::back_inserter(pkt->data));
-        std::copy(grabber.getPlaneY(), grabber.getPlaneY() + grabber.getNumBytes(), std::back_inserter(pkt->data));
-        streamer.addVideo(pkt);
-      
-    }
-
 #if 1
-    glBindVertexArray(vao);
-    glUseProgram(prog);
+      uint32_t timestamp = streamer.getTimeStamp();
+      uint32_t timediff = timestamp - start_time;
 
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, fast_upload.tex_y);
-
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, fast_upload.tex_u);
-
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, fast_upload.tex_v);
-
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+      AVPacket* pkt = new AVPacket();
+      printf("-- %d\n", timestamp);
+      pkt->setTimeStamp(timestamp);
+      pkt->makeVideoPacket();
+      //std::copy(dest_y, dest_y + 1382400, std::back_inserter(pkt->data));
+      std::copy(grabber.getPlaneY(), grabber.getPlaneY() + grabber.getNumBytes(), std::back_inserter(pkt->data));
+      streamer.addVideo(pkt);
 #endif
+      //      grabber.draw();
+    }
+    grabber.draw();
+    //else
+#if 0
+      glBindVertexArray(vao);
+      glUseProgram(prog);
+
+      glActiveTexture(GL_TEXTURE0);
+      glBindTexture(GL_TEXTURE_2D, fast_upload.tex_y);
+
+      glActiveTexture(GL_TEXTURE1);
+      glBindTexture(GL_TEXTURE_2D, fast_upload.tex_u);
+
+      glActiveTexture(GL_TEXTURE2);
+      glBindTexture(GL_TEXTURE_2D, fast_upload.tex_v);
+
+      glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+#endif
+      //    }
     glfwSwapBuffers(win);
     glfwPollEvents();
   }
