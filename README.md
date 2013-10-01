@@ -3,6 +3,29 @@
 _Documentation will be added when we have a working version of this lib_
 
 
+## Prepare
+
+- Download the DeckLink SDK and for mac, copy the include directory to _projects/decklink/sdk/include_
+
+This library makes use of the following libraries:
+
+- x264
+- rapidxml
+- glxw (only for opengl apps)
+- glfw3 (only for opengl apps)
+- mp3lame 
+- libyuv
+- openssl
+- zlib
+- nanomsg (only for daemon, which is under development)
+- librtmp
+- libuv 
+
+_Build system command_
+````sh
+python rbs.py -t build -c clang -b debug -a 64 -s rapidxml,glxw,glfw,uv,lamemp3,rtmp,x264,openssl,zlib,nanomsg,libyuv
+````
+
 ## Things to be aware of
 
 _Windows .idl files_

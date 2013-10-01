@@ -121,7 +121,7 @@ int main() {
   // Create a memory pool for our AVPackets - this preallocates video frames because we don't want to allocate on the fly
   size_t bytes_per_frame = grabber.getNumBytes();
   MemoryPool memory_pool;
-  memory_pool.allocateVideoFrames(3, bytes_per_frame);
+  memory_pool.allocateVideoFrames(5, bytes_per_frame);
 
   printf("we need: %ld bytes per frame.\n", bytes_per_frame);
   
@@ -150,7 +150,7 @@ int main() {
 
       AVPacket* vid = memory_pool.getFreeVideoPacket();
       if(!vid) {
-        printf("error: cannot get a free video packet, try to increase the pool size\n");
+        printf("error: cannot get a free video packet, try to increase the pool size (only when you get this in release mode!)\n");
       }
       else {
         vid->makeVideoPacket();

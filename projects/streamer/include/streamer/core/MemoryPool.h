@@ -87,7 +87,6 @@ inline void MemoryPool::release(AVPacket* pkt) {
       ::exit(EXIT_FAILURE);
     }
 #endif
-
     pkt->refcount--;
 
     unlockVideo();
