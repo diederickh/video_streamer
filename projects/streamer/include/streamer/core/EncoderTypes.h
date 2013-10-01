@@ -27,17 +27,33 @@
 
 // -----------------------------------------
 
+class MemoryPool;
+
 struct AVPacket {
-  AVPacket();
+  AVPacket(MemoryPool* mp);     /* An AVPacket can be part of a MemoryPool, which is used to preallocate frames and reuse frames that are not used anymore but this is not necessary, pass NULL when you don't want ot use  a memory pool */
+  ~AVPacket();                  /* cleans up ;-) */
   void makeVideoPacket();
   void makeAudioPacket();
   void setTimeStamp(uint32_t ts);
+  
+  void addRef(); /* call addRef when you want to hold on to this data for a while, when ready call Release */
+  void release();  /* call Release when you don't use this packet anymore, so the memory pool can reuse  it */
+  
   void copy(uint8_t* buf, size_t nbytes); /* copy the given bytes to `data` */
+  
 
   void allocate(size_t nbytes);  /* make sure that the data member can hold `nbytes` of data */
   uint8_t type;                  /* either AV_TYPE_VIDEO or AV_TYPE_AUDIO */
   uint32_t timestamp;            /* timestamp that will be used by the FLVTag; this is the timestamp on which the data for this packet was genearted in millis, started with 0 */
   std::vector<uint8_t> data;     /* the actual RAW video or audio data that will be encoded */
+  //uint8_t* data;
+
+  uint32_t y_offset;             /* video packet: offset into the `data` member where the y-plane starts, if not set we don't use it */
+  uint32_t u_offset;             /* video packet: offset into the `data` member where the u-plane starts, if not set we dont' use it */
+  uint32_t v_offset;             /* video packet: offset into the `data` member where the v-plane starts, if not set we dont' use it */
+
+  MemoryPool* memory_pool;       /* the memory pool to which this packet belongs */
+  uint32_t refcount;             /* when addRef() is called this gets incremented, release() decrements it  (through memory pool) */
 };
 
 // -----------------------------------------
@@ -92,5 +108,7 @@ inline void AVPacket::setTimeStamp(uint32_t ts) {
 inline void AVPacket::copy(uint8_t* buf, size_t nbytes) {
   std::copy(buf, buf+nbytes, std::back_inserter(data));
 }
+
+
 
 #endif

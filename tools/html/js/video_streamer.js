@@ -26,7 +26,7 @@ function setup_live_playback() {
     ,plugins: {
       rtmpd: {
         url: "swf/flowplayer.rtmp-3.2.12.swf"
-        ,netConnectionUrl: "rtmp://localhost/flvplayback/"
+        ,netConnectionUrl: "rtmp://127.0.0.1/flvplayback/"
       }
     }
   });
@@ -106,7 +106,7 @@ function video_streamer_init() {
   }
 
   //setup_flv_playback();
-//  setup_akamai_playback();
+  //setup_akamai_playback();
   setup_live_playback();
   //setup_raw_playback();
   //setup_rtmpdump_playback();

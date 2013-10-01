@@ -122,7 +122,7 @@ roxlu_create_xcodeproject() {
 roxlu_run_release() {
     d=${PWD}
     bd=${d}/../../bin
-    appdir=${bd}/../
+    appdir=${bd}/../../
 
     # get app name
     cd ${appdir}
@@ -139,7 +139,7 @@ roxlu_run_release() {
 roxlu_run_debug() {
     d=${PWD}
     bd=${d}/../../bin
-    appdir=${bd}/../
+    appdir=${bd}/../../
 
     # get app name
     cd ${appdir}

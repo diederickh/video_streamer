@@ -1,11 +1,16 @@
 #include <decklink/DeckLink.h>
 #include <iostream>
-#include <comutil.h>
+
+#if defined(_WIN32)
+#  include <comutil.h>
+#endif
 
 DeckLink::DeckLink() 
   :card(NULL)
 {
+#if defined(_WIN32)
   CoInitialize(NULL);
+#endif
 }
 
 DeckLink::~DeckLink() {
@@ -22,12 +27,20 @@ bool DeckLink::setup(int device) {
     return false;
   }
 
+#if defined(_WIN32)
   IDeckLinkIterator* dl_iterator = NULL;
   HRESULT r = CoCreateInstance(CLSID_CDeckLinkIterator, NULL, CLSCTX_ALL, IID_IDeckLinkIterator, (void**)&dl_iterator);
   if(r != S_OK) {
     printf("error: cannot get the decklink iterator.\n");
     return false;
   }
+#else
+  IDeckLinkIterator* dl_iterator = CreateDeckLinkIteratorInstance();
+  if(!dl_iterator) {
+    printf("error: cannot get the decklink iterator.\n");
+    return false;
+  }
+#endif
 
   int i = 0;
   IDeckLink* dl_decklink;
@@ -57,12 +70,21 @@ bool DeckLink::setup(int device) {
 }
 
 bool DeckLink::printDevices() {
+
+#if defined(_WIN32)
   IDeckLinkIterator* dl_iterator = NULL;
   HRESULT r = CoCreateInstance(CLSID_CDeckLinkIterator, NULL, CLSCTX_ALL, IID_IDeckLinkIterator, (void**)&dl_iterator);
   if(r != S_OK) {
     printf("error: cannot get the decklink iterator.\n");
     return false;
   }
+#else 
+  IDeckLinkIterator* dl_iterator = CreateDeckLinkIteratorInstance();
+  if(!dl_iterator) {
+    printf("error: cannot get the decklink iterator.\n");
+    return false;
+  }
+#endif
 
   int i = 0;
   IDeckLink* dl_decklink;
@@ -88,6 +110,7 @@ bool DeckLink::getCapabilities(IDeckLink* dl) {
 
   // PRINT SOME ATTRIBUTES
   // ---------------------------------------------------------------------
+#if defined(_WIN32)
   BSTR model_name = NULL;
   HRESULT r = dl->GetModelName(&model_name);
   if(r != S_OK) {
@@ -97,6 +120,22 @@ bool DeckLink::getCapabilities(IDeckLink* dl) {
   _bstr_t model_name_str(model_name, false);
   printf("> Model name: %s\n", (char*)model_name_str);
 
+#else 
+
+  CFStringRef model_name;
+  HRESULT r = dl->GetModelName(&model_name);
+  if(r != S_OK) {
+    printf("error: cannot get the model name.\n");
+    CFRelease(model_name);
+    return false;
+  }
+
+  char name_buf[64];
+  CFStringGetCString(model_name, name_buf, 64, kCFStringEncodingMacRoman);
+  CFRelease(model_name);
+
+  printf("> Model name: %s\n", name_buf);
+#endif
 
   IDeckLinkAttributes* attr = NULL;
   r = dl->QueryInterface(IID_IDeckLinkAttributes, (void**)&attr);
@@ -104,9 +143,13 @@ bool DeckLink::getCapabilities(IDeckLink* dl) {
     printf("error: cannot query the IDeckLinkAttributes.\n");
     return false;
   }
-
+#if defined(_WIN32)
   BOOL supported = false;
   LONGLONG count = 0;
+#else
+  bool supported = false;
+  int64_t count = 0;
+#endif
   
   // serial port
   r = attr->GetFlag(BMDDeckLinkHasSerialPort, &supported);
@@ -161,6 +204,7 @@ bool DeckLink::getCapabilities(IDeckLink* dl) {
   IDeckLinkDisplayMode* mode = NULL;
   while(mode_iter->Next(&mode) == S_OK) {
 
+#if defined(_WIN32)
     BSTR mode_bstr = NULL;
     r = mode->GetName(&mode_bstr);
     if(r != S_OK) {
@@ -171,7 +215,22 @@ bool DeckLink::getCapabilities(IDeckLink* dl) {
     
     _bstr_t mode_name(mode_bstr, false);
     printf("  [%d] %s\n", i, (char*) mode_name);
+#else
 
+  CFStringRef mode_name_tmp;
+  HRESULT r = dl->GetModelName(&mode_name_tmp);
+  if(r != S_OK) {
+    printf("error: cannot get the display mode name.\n");
+    CFRelease(mode_name_tmp);
+    return false;
+  }
+
+  char mode_name_buf[512];
+  CFStringGetCString(mode_name_tmp, mode_name_buf, 512, kCFStringEncodingMacRoman);
+  CFRelease(mode_name_tmp);
+
+  printf("  [%d] %s\n", i, mode_name_buf);
+#endif
     mode->Release();
 
     i++;

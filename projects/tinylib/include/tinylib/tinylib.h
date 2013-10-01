@@ -50,8 +50,19 @@
 #include <string>
 
 #if defined(__APPLE__)
-#  include <OpenGL/gl3.h>
-#  include <OpenGL/glext.h>
+#  if !defined(__gl_h_)
+#    include <OpenGL/gl3.h>
+#    include <OpenGL/glext.h>
+#  endif
+#  include <libgen.h> /* dirname */
+#  include <CoreFoundation/CFRunLoop.h>
+#  include <mach/mach.h>
+#  include <mach/mach_time.h>
+#  include <mach-o/dyld.h> /* _NSGetExecutablePath */
+#  include <sys/resource.h>
+#  include <sys/sysctl.h>
+#  include <sys/stat.h> /* stat() */
+#  include <unistd.h>  /* sysconf */
 #else 
 #  include <GLXW/glxw.h>
 #endif

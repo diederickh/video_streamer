@@ -51,6 +51,9 @@ void runner_thread(void* user) {
     switch(pkt_type) {
       case CP_TYPE_AVPACKET: {
 
+        // @todo - neglected development of the daemon a bit - need to implement a MemoryPool!
+
+#if 0
         uint32_t ts = FromBE32(*(uint32_t *)data);
         AVPacket* av_pkt = new AVPacket();
         av_pkt->makeVideoPacket();
@@ -61,6 +64,7 @@ void runner_thread(void* user) {
         ofs.write((data+4), rc-9);
 #endif
         printf("<< timestamp: %d, size: %d\n", ts, (rc-9));
+#endif
         break;
       }
       default: {

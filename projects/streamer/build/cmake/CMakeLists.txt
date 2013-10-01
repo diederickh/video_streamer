@@ -24,6 +24,7 @@ set(streamer_source_files
   ${streamer_source_dir}/flv/FLVWriter.cpp
   ${streamer_source_dir}/flv/FLVFileWriter.cpp
   ${streamer_source_dir}/flv/FLVTypes.cpp
+  ${streamer_source_dir}/core/MemoryPool.cpp
   ${streamer_source_dir}/core/BitStream.cpp
   ${streamer_source_dir}/core/Debug.cpp
   ${streamer_source_dir}/core/VideoEncoder.cpp

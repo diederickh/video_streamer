@@ -13,6 +13,39 @@
 
   Simple usage: 
   ````c++
+  #include <streamer/core/TestPattern.h>
+
+  TestPattern tp;
+  if(!tp.setup(320, 240, 25, 44100)) {
+     printf("error: cannot setup.\n");
+     ::exit(EXIT_FAILURE);
+  }
+
+  tp.start();
+  
+  while(true) {
+
+    tp.update();
+
+    // timestamp not tested in this pseude code
+    if(tp.hasVideoFrame()) {
+       AVPacket* vid_pkt = new AVPacket();
+       vid_pkt->allocate(320 * 240 + (320 * 0.5 * 240 * 0.5) * 2);      
+       tp.generateVideoFrame(vid_pkt->data);
+       vid_pkt->makeVideoPacket();
+       vid_pkt->setTimeStamp(tp.timestamp);
+       streamer.addVideo(vid_pkt);
+    }
+
+    // timestamp not tested in this pseude code
+    if(tp.hasAudioFrame()) {
+        AVPacket* audio_pkt = new AVPacket();
+        tp.generateAudioFrame(audio_pkt->data);
+        audio_pkt->makeAudioPacket();
+        audio_pkt->setTimeStamp(tp.timestamp);
+        streamer.addAudio(audio_pkt);
+    }
+  }
   ````
  */
 #ifndef ROXLU_TEST_PATTERN_H

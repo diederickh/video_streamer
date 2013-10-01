@@ -55,11 +55,15 @@ class VideoStreamer {
   VideoStreamer();
   ~VideoStreamer();
 
+  /* these functions must be called before you call setup() ! */
   bool loadSettings(std::string filepath); /* instead of passing the settings to setServerSettings(), setVideoSettings() and setAudioSettings(), you can load them from a xml file. */
   void setServerSettings(ServerSettings ss);
   void setVideoSettings(VideoSettings vs);
   void setAudioSettings(AudioSettings as);
   void setOutputFile(std::string filepath);
+  void setStrides(uint32_t strideY, uint32_t strideU, uint32_t strideV); /* (call before setup()) - sets the strides for the y,u,v planes on the video encoder */
+  void setVideoWidth(uint16_t w); /* change the width of the video settings */
+  void setVideoHeight(uint16_t h); /* change the height of the video settings */
 
   bool setup(); /* setup all the used members, after you've called `setServerSettings()`, `setAudioSettings()`, `setVideoSettings()` */
   bool start();
@@ -68,12 +72,14 @@ class VideoStreamer {
 
   bool wantsVideo(); /* returns true when we need a new video frame, used in "direct" mode, w/o the daemon */
 
-  void addVideo(AVPacket* pkt);
-  void addAudio(AVPacket* pkt);
+  void addVideo(AVPacket* pkt); /* add a new packet to encode - see the MemoryPool description in the header for some info about refcounts */
+  void addAudio(AVPacket* pkt); /* add a new packet to encode - see the MemoryPool description in the header for some info about refcounts */
 
   uint32_t getTimeStamp(); /* get the current timestamp in mills, relative from the 'start' timestamp */
   uint16_t getVideoWidth(); /* get the width of the output video, as defined in the settings - width used by encoder */
   uint16_t getVideoHeight(); /* get the height of the output video, as defined in the settings - height used by encoder */
+  uint8_t getFrameRate(); /* returns the video framerate */
+  uint16_t getSampleRate(); /* get audio sample rate as defined in the audio settings */
 
  private:
   bool usesVideo(); /* returns true when video encoding is used */
@@ -99,6 +105,13 @@ class VideoStreamer {
 };
 
 // ---------------------------------
+inline void VideoStreamer::setVideoWidth(uint16_t w) {
+  video_settings.width = w;
+}
+
+inline void VideoStreamer::setVideoHeight(uint16_t h) {
+  video_settings.height = h;
+}
 
 inline void VideoStreamer::setServerSettings(ServerSettings ss) {
   server_settings = ss;
@@ -143,8 +156,21 @@ inline uint32_t VideoStreamer::getTimeStamp() {
 inline uint16_t VideoStreamer::getVideoWidth() {
   return video_settings.width;
 }
+
 inline uint16_t VideoStreamer::getVideoHeight() {
   return video_settings.height;
+}
+
+inline uint8_t VideoStreamer::getFrameRate() {
+  return video_settings.fps;
+}
+
+inline uint16_t VideoStreamer::getSampleRate() {
+  return audio_settings.samplerate;
+}
+
+inline void VideoStreamer::setStrides(uint32_t strideY, uint32_t strideU, uint32_t strideV) {
+  video_enc.setStrides(strideY, strideU, strideV);
 }
 
 #endif

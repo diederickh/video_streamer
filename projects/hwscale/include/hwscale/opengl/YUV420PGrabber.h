@@ -6,24 +6,33 @@
   it will convert the grabbed scene to YUV420P using a shader. This class is a lot
   faster then libswscale (www.libav.org), for both color conversion and resizing.
 
-  You can define a cppflag  `-DUSE_APPLE_VAO=1` if you want to use the 
-  glGenVertexArraysAPPLE() functions.
+  See: http://www.flickr.com/photos/diederick/10027076563/  for how different
+       video streams are packet together into one buffer. 
+       IMPORTANT: the memory is flipped .. so the smallest buffer is at index 0.
+
 
  */
 #ifndef ROXLU_YUV420P_GRABBER_H
 #define ROXLU_YUV420P_GRABBER_H
 
+extern "C" {
+#  include <uv.h>  
+}
 
 #if defined(__APPLE__)
-#  include <OpenGL/gl3.h>
-#  include <OpenGL/glext.h>
+#  if !defined(__gl_h_) 
+#    include <OpenGL/gl3.h>
+#    include <OpenGL/glext.h>
+#  endif
 #else 
 #  include <GLXW/glxw.h>
 #endif
 
-extern "C" {
-#  include <uv.h>  
-}
+#include <assert.h>
+#include <vector>
+#include <fstream>
+
+#define YUV420P_NUM_PBO 3
 
 // -----------------------------------------------------
 #if YUV420P_GRABBER_GLSL_VERSION == 120
@@ -83,10 +92,13 @@ static const char* YUV420P_PT_FS = ""
   " gl_FragColor = vec4(texture2D(u_tex, v_tex).rgb, 1.0);"
   "}"
   ;
+
+#error "Need to update the YUV420P grabber for GLSL 120"
+
 #elif YUV420P_GRABBER_GLSL_VERSION == 150
 
 
-static const char* YUV420P_Y_VS = ""
+static const char* YUV420P_YUV_VS = ""
   "#version 150\n"
   "const vec2 vert_data[4] = vec2[]("
   "  vec2(-1.0, 1.0),"
@@ -123,17 +135,26 @@ static const char* YUV420P_Y_FS = ""
   "}"
   ;
 
-static const char* YUV420P_UV_FS = ""
+static const char* YUV420P_U_FS = ""
   "#version 150\n"
   "uniform sampler2D u_tex;"
   "in vec2 v_tex;"
   "out vec4 u_channel;"
-  "out vec4 v_channel;"
   "void main() {"
   "  vec3 tc = texture(u_tex, v_tex).rgb; "
-    "  u_channel = vec4(1.0);"
+  "  u_channel = vec4(1.0);"
+  "  u_channel.r = -(tc.r * 0.148) - (tc.g * 0.291) + (tc.b * 0.439) + 0.5; "
+  "}"
+  ;
+
+static const char* YUV420P_V_FS = ""
+  "#version 150\n"
+  "uniform sampler2D u_tex;"
+  "in vec2 v_tex;"
+  "out vec4 v_channel;"
+  "void main() {"
+    "  vec3 tc = texture(u_tex, v_tex).rgb; "
     "  v_channel = vec4(1.0);"
-    "  u_channel.r = -(tc.r * 0.148) - (tc.g * 0.291) + (tc.b * 0.439) + 0.5; "
     "  v_channel.r =  (tc.r * 0.439) - (tc.g * 0.368) - (tc.b * 0.071) + 0.5; "
   "}"
   ;
@@ -154,36 +175,73 @@ static const char* YUV420P_PT_FS = ""
 #endif
 // -----------------------------------------------------
 
+struct YUV420PSize {
+  YUV420PSize();
+  bool operator()(const YUV420PSize& a, const YUV420PSize b) { return a.yw > b.yw; } /* sorts from BIG to SMALL */
+  void print();
+
+  /* ... for fetching from the buffer */
+  uint32_t y_offset; /* first y-pixel in buffer */
+  uint32_t u_offset; /* first u-pixel in buffer */
+  uint32_t v_offset; /* first v-pixel in buffer */
+  uint32_t y_stride; /* y-plane stride in image buffer */
+  uint32_t u_stride; /* u-plane stride in image buffer */
+  uint32_t v_stride; /* v-plane stride in image buffer */
+
+  int yw;  /* y-plane width */
+  int yh;  /* y-plane height */
+  int uvw;  /* u/v-plane width */
+  int uvh;  /* u/v-plane height */
+  int y_viewport_x; /* set viewport to this when rendering/grabbing */
+  int y_viewport_y; /* set viewport to this when rendering/grabbing  */
+  int u_viewport_x; /* set viewport to this when rendering/grabbing */
+  int u_viewport_y; /* set viewport to this when rendering/grabbing */
+  int v_viewport_x; /* set viewport to this when rendering/grabbing */
+  int v_viewport_y; /* set viewport to this when rendering/grabbing */
+
+  int id; /* the ID of this size, can be used with getImage(ID, ...) */
+  uint8_t* planes[3]; /* pointers into YUV420PGrabber::image */
+  uint32_t strides[3]; 
+};
+
 class YUV420PGrabber {
  public:
   YUV420PGrabber();
   ~YUV420PGrabber();
-  bool setup(int winW, int winH, int videoW, int videoH, int fps);
+  void addSize(int id, int w, int h); /* the id identifies this size and this id can be used with getImage(..) to retrieve pointers to this image */
+  YUV420PSize getSize(int id); /* get the size info object for the given image ID, make sure you have called setup() fist! */
+  bool setup(int winW, int winH, int fps); /* , int videoW, int videoH, int fps); */
   void beginGrab();
   void endGrab();
   void draw();
   void print(); /* print some debug info */
   void start(); /* start capturing; sets the frame timeout */
   bool hasNewFrame();
-  void downloadTextures(); /* downloads the YUV420p into the planes you can get with getPlanes() */
+  void downloadTextures(); /* downloads the YUV420p into the planes you can get with getPlanes(), when setOutput() has been called it will write the data to a raw yuv 420p file*/
+  unsigned char* getPtr(); /* get ptr to the image data */
+  /*
   unsigned char* getPlaneY();
   unsigned char* getPlaneU();
   unsigned char* getPlaneV();
+  */
   int getWidth(); /* returns video output width, same as y_plane dimensions*/
   int getHeight();  /* returns video output height, same as y_plane dimensions */
   int getWidthUV(); /* returns the width for the u and v planes */
   int getHeightUV(); /* returns the height for the u and v planes */
   uint32_t getTimeStamp(); /* get the timestamp for the current video frame in millis */
   size_t getNumBytes(); /* get num bytes in the image (for all planes) */ 
-  GLuint getYTex(); /* get the texture that stores the Y plane */
-  GLuint getUTex(); /* get the texture that stores the U plane */
-  GLuint getVTex(); /* get the texture that stores the V plane */
   GLuint getFBO(); /* returns the id of the fbo */
+  bool getImage(int id, uint8_t* planes, uint32_t* strides); /* return y,u,v planes and strides, both arrays are assumed to have a size of 3 */
+
+  bool setOutput(int id, std::string filepath); /* when set, we will write the given size (id) to a raw yuv file. */
+
  private:
   bool setupFBO();
   bool setupVAO();
+  bool setupSizes(); /* calculates the viewport positions for the added sizes and sets the texture width/height into which we grab the frame */
   bool setupTextures();
   bool setupShaders();
+  bool setupPBO();
   void setTextureParameters();
   void printShaderCompileInfo(GLuint shader);
   void printShaderLinkInfo(GLuint shader);
@@ -201,9 +259,11 @@ class YUV420PGrabber {
   int uv_h;
   int fps;
 
-  GLuint y_tex;
-  GLuint u_tex;
-  GLuint v_tex;
+  /* the w and h of the texture into which we grab all the added sizes */
+  int tex_w;
+  int tex_h;
+
+  GLuint yuv_tex;
   GLuint vao; 
   GLuint scene_fbo;
   GLuint scene_depth;
@@ -211,22 +271,29 @@ class YUV420PGrabber {
 
   /* Y-plane */
   GLuint prog_y;
-  GLuint vert_y;
   GLuint frag_y;
 
   /* U & V planes */
-  GLuint prog_uv;
-  GLuint vert_uv;
-  GLuint frag_uv;
+  GLuint vert_yuv;
+  GLuint prog_u;
+  GLuint prog_v;
+  GLuint frag_v;
+  GLuint frag_u;
 
   /* passthrough */
   GLuint prog_pt;
   GLuint frag_pt;
 
+  GLuint pbo[YUV420P_NUM_PBO];
+  int pbo_write_dx;
+  int pbo_read_dx;
+
   unsigned char* image;
+  /*
   unsigned char* y_plane;
   unsigned char* u_plane;
   unsigned char* v_plane;
+  */
   
   /* framerate management */
   int64_t frame_timeout; /* when we should grab a new frame */
@@ -237,7 +304,40 @@ class YUV420PGrabber {
   int64_t frame_diff_avg; /* running avarage of `frame_time_diff` */
   uint32_t time_started; /* time we start() was called */
   uint32_t timestamp; /* timestamp of last frame, set in hasNewFrame() */
+  std::vector<YUV420PSize> sizes; /* the sizes into which we need to rescale the grabber frames */
+
+  /* debug */
+  std::ofstream ofs; /* the outfile stream, see setOutput(), which initializes these members; and writes the given size id to a file */
+  int outfile_size_id; /* id of of a YUV420PSize that can be found in the `sizes` member, see setOutput() */
+  bool outfile_set; /* is set to true when we need to write to an output file */
 };
+
+inline unsigned char* YUV420PGrabber::getPtr() {
+  return image;
+}
+
+inline void YUV420PGrabber::addSize(int id, int w, int h) {
+  assert(w && h);
+  printf("- w: %d, h: %d\n", w, h);
+  YUV420PSize s;
+  s.yw = w;
+  s.yh = h;
+  s.uvw = w >> 1;
+  s.uvh = h >> 1;
+  s.id = id;
+  sizes.push_back(s);
+}
+
+inline YUV420PSize YUV420PGrabber::getSize(int id) {
+  for(std::vector<YUV420PSize>::iterator it = sizes.begin(); it != sizes.end(); ++it) {
+    YUV420PSize& s = *it;
+    if(s.id == id) {
+      return s;
+    }
+  }
+  printf("error: size with id `%d` not found.\n", id);
+  ::exit(EXIT_FAILURE);
+}
 
 inline void YUV420PGrabber::setTextureParameters() {
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -267,6 +367,7 @@ inline void YUV420PGrabber::deleteProgram(GLuint& p) {
   }
 }
 
+/*
 inline unsigned char* YUV420PGrabber::getPlaneY() {
   return y_plane;
 }
@@ -278,6 +379,7 @@ inline unsigned char* YUV420PGrabber::getPlaneU() {
 inline unsigned char* YUV420PGrabber::getPlaneV() {
   return v_plane;
 }
+*/
 
 inline int YUV420PGrabber::getWidth() {
   return vid_w;
@@ -313,19 +415,7 @@ inline uint32_t YUV420PGrabber::getTimeStamp() {
 }
 
 inline size_t YUV420PGrabber::getNumBytes() {
-  return vid_w * vid_h + (uv_w * uv_h * 2);
-}
-
-inline GLuint YUV420PGrabber::getYTex() {
-  return y_tex;
-}
-
-inline GLuint YUV420PGrabber::getUTex() {
-  return u_tex;
-}
-
-inline GLuint YUV420PGrabber::getVTex() {
-  return v_tex;
+  return tex_w * tex_h; //vid_w * vid_h + (uv_w * uv_h * 2);
 }
 
 inline GLuint YUV420PGrabber::getFBO() {

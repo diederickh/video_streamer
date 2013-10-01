@@ -9,7 +9,7 @@
 
 #define USE_CV 1  // use condition var for threading 
 // -------------------------------------------------
-
+// @todo - remove / cleanup!!
 void encoder_congestion_thread_func(void* user) {
   return;
   EncoderThread* enc_ptr = static_cast<EncoderThread*>(user);
@@ -70,7 +70,8 @@ void encoder_thread_func(void* user) {
 
       // packets must be 100% ascending (cannot sort because "older" packets might be added after the current "todo" buffer)
       if(pkt.timestamp <= last_timestamp) {
-        delete* it;
+        pkt.release();
+        //delete* it;
         continue;
       }
 
@@ -89,7 +90,9 @@ void encoder_thread_func(void* user) {
         printf("- error: EncoderThread cannot handle a AVPacket with type: %d\n", pkt.type);
       }
       last_timestamp = pkt.timestamp;
-      delete *it; 
+
+      pkt.release();
+      //delete *it; 
     }
 
     todo.clear();
@@ -125,7 +128,7 @@ EncoderThread::~EncoderThread() {
   }
 
   // we must trigger the thread conditional loop 
-  AVPacket* stop_pkt = new AVPacket();
+  AVPacket* stop_pkt = new AVPacket(NULL);
   addPacket(stop_pkt);
   
   // cleanup

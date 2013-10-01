@@ -32,7 +32,7 @@
     <stream>
       <id>0</id>
       <server>
-        <rtmp_url>rtmp://192.168.0.188/flvplayback/livestream</rtmp_url>
+        <url>rtmp://192.168.0.188/flvplayback/livestream</url>
       </server>
       <video>
         <width>320</width>

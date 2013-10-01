@@ -1,16 +1,69 @@
 #include <stdio.h>
 #include <streamer/core/EncoderTypes.h>
+#include <streamer/core/MemoryPool.h>
 
 // -----------------------------------------
 
-AVPacket::AVPacket() 
+AVPacket::AVPacket(MemoryPool* mp) 
   :type(AV_TYPE_UNKNOWN)
   ,timestamp(0)
+  ,y_offset(0)
+  ,u_offset(0)
+  ,v_offset(0)
+  ,memory_pool(mp)
+   //  ,data(NULL)
 {
 }
 
+AVPacket::~AVPacket() {
+
+  printf("AVPacket::~AVPacket()\n");
+
+#if 0
+  if(data) {
+    delete[] data;
+  }
+  data = NULL;
+#endif
+
+}
+
 void AVPacket::allocate(size_t nbytes) {
+
+#if 0
+  if(data) {
+    printf("error: trying to re-allocate - not supported.\n");
+    ::exit(EXIT_FAILURE);
+  }
+  data = new uint8_t[nbytes];
+#endif
+
   data.assign(nbytes, 0x00);
+
+}
+
+void AVPacket::addRef() {
+
+  if(!memory_pool) {
+    printf("warning: trying to refcount an AVPacket which does not have a memory pool! - maybe a stop packet?\n");
+    return;
+ 
+ }
+  memory_pool->addRef(this);
+}
+
+void AVPacket::release() {
+
+  // @todo - when a AVPacket is not part of a memory pool we need to have a way to cleanly free the memory ..
+  // @todo - ... this is e.g. used in the encoder thread when we add a stop packet, this stop packets needs to be deleted which we do herea
+  if(!memory_pool) {
+    printf("warning: trying to refcount an AVPacket which does not have a memory pool! - maybe a stop packet?\n");
+    printf("warning: we are going to delete ourself!\n");
+    delete this;
+    return;
+  }
+
+  memory_pool->release(this);
 }
 
 // -----------------------------------------
