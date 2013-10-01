@@ -42,7 +42,7 @@ RTMPWriter::~RTMPWriter() {
 
 bool RTMPWriter::initialize() {
 
-  if(!url.size()) {
+  if(!settings.url.size()) {
     printf("error: cannot initialize the RTMP Writer, no url set, call setURL() first.\n");
     return false;
   }
@@ -54,8 +54,8 @@ bool RTMPWriter::initialize() {
 
   RTMP_Init(rtmp);
 
-  printf("url: %s\n", url.c_str());
-  if(!RTMP_SetupURL(rtmp, (char*)url.c_str())) {
+  printf("url: %s\n", settings.url.c_str());
+  if(!RTMP_SetupURL(rtmp, (char*)settings.url.c_str())) {
     printf("error: cannot setup the url for the RTMP Writer.\n");
     return false;
   }
@@ -74,14 +74,14 @@ bool RTMPWriter::initialize() {
   RTMP_EnableWrite(rtmp);
 
   if(!RTMP_Connect(rtmp, NULL)) {
-    printf("error: cannot connect to the rtmp server: %s\n", url.c_str());
+    printf("error: cannot connect to the rtmp server: %s\n", settings.url.c_str());
     RTMP_Free(rtmp);
     rtmp = NULL;
     return false;
   }
 
   if(!RTMP_ConnectStream(rtmp, 0)) {
-    printf("error: cannot connect to the rtmp stream on %s.\n", url.c_str());
+    printf("error: cannot connect to the rtmp stream on %s.\n", settings.url.c_str());
     RTMP_Free(rtmp);
     rtmp = NULL;
     return false;

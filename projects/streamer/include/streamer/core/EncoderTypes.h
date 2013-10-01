@@ -89,6 +89,8 @@ struct ServerSettings {
   bool validate();     /* returns true when all members have been set correctly */
   void print();        /* print debug info */
   std::string url;
+  std::string username; /* the username you can use for protected write streams */
+  std::string password; /* the password you can use for protected write streams */
 };
 
 // -----------------------------------------

@@ -3,8 +3,10 @@ cmake_minimum_required(VERSION 2.8)
 # ${streamer_source_files}  - compile these source files
 # ${streamer_libraries}     - link with these
 # ${streamer_include_dirs}  - add these to your include directories
+# ${streamer_source_dirs}   - if you want to copy the source on install (e.g. see the openframeworks package) use this
 # ${streamer_install_files} - add these to your install command (FILES)
 # ${streamer_definitions}   - add these to your preprocessor definitions
+
 
 include(${CMAKE_CURRENT_LIST_DIR}/../../../../tools/cmake/Triplet.cmake)
 
@@ -41,6 +43,14 @@ set(streamer_source_files
   ${streamer_source_dir}/daemon/Channel.cpp
   ${streamer_source_dir}/videostreamer/VideoStreamer.cpp
   ${streamer_source_dir}/videostreamer/VideoStreamerConfig.cpp
+)
+
+set(streamer_source_dirs 
+  ${streamer_source_dir}/amf
+  ${streamer_source_dir}/flv
+  ${streamer_source_dir}/core
+  ${streamer_source_dir}/daemon
+  ${streamer_source_dir}/videostreamer
 )
 
 set(streamer_include_dirs ${CMAKE_CURRENT_LIST_DIR}/../../include/)

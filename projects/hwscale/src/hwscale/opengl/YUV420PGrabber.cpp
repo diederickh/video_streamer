@@ -2,7 +2,9 @@
 #include <iostream>
 #include <hwscale/opengl/YUV420PGrabber.h>
 
-#define YUV420P_USE_APPLE_VAO 0
+#if !defined(YUV420P_USE_APPLE_VAO)
+#  define YUV420P_USE_APPLE_VAO 0
+#endif
 
 YUV420PSize::YUV420PSize() 
   :y_offset(0)
@@ -186,10 +188,12 @@ bool YUV420PGrabber::setup(int winW, int winH, int framerate) {
     return false;
   }
 
+#if 0
   if(!setupPBO()) {
     printf("error: cannot setup pbox.\n");
     return false;
   }
+#endif
 
   if(!setupFBO()) {
     printf("error: cannot setup fbo.\n");
@@ -304,6 +308,7 @@ bool YUV420PGrabber::setupSizes() {
   return true;
 }
 
+/* not used atm! */
 bool YUV420PGrabber::setupPBO() {
   assert(tex_w > 0 && tex_h > 0); /* setupSizes() must be called first */
   
@@ -556,7 +561,6 @@ void YUV420PGrabber::endGrab() {
       glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);      
     }
   }
-
   unbindVAO();
 
   glUseProgram(0);

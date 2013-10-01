@@ -68,6 +68,14 @@ bool VideoStreamerConfig::load(std::string filepath) {
       sc->audio.in_bitsize = conf.readU8(stream, "audio/in_bitsize");
       sc->audio.in_interleaved = conf.readU8(stream, "audio/in_interleaved");
       sc->server.url = conf.readString(stream, "server/url");
+      
+      if(conf.doesNodeExists(stream, "server/username")) {
+        sc->server.username = conf.readString(stream, "server/username");
+      }
+
+      if(conf.doesNodeExists(stream, "server/password")) {
+        sc->server.password = conf.readString(stream, "server/password");
+      }
 
       configs.push_back(sc);
       sc = NULL;

@@ -11,6 +11,8 @@ extern "C" {
 #include <vector>
 #include <iterator>
 #include <algorithm>
+#include <iostream>
+#include <streamer/core/EncoderTypes.h>
 
 // ---------------------------------------------------
 
@@ -29,20 +31,28 @@ class RTMPWriter {
  public:
   RTMPWriter();
   ~RTMPWriter();
+  bool setup(ServerSettings ss); /* call setup() with valid ServerSetting before calling initialize */
   bool initialize();
-  void setURL(std::string url);
   void write(uint8_t* data, size_t nbytes);
   void read();
  private:
+  ServerSettings settings;
   bool is_initialized;
-  std::string url;
   RTMP* rtmp;
 };
 
 // ---------------------------------------------------
 
-inline void RTMPWriter::setURL(std::string u) {
-  url = u;
+inline bool RTMPWriter::setup(ServerSettings ss) {
+
+  if(!ss.url.size()) {
+    printf("error: invalid server settings, no url set.\n");
+    return false;
+  }
+
+  settings = ss;
+
+  return true;
 }
 
 // ---------------------------------------------------

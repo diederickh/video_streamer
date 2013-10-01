@@ -35,7 +35,7 @@ class MemoryPool {
   MemoryPool();
   ~MemoryPool();
 
-  AVPacket* getFreeVideoPacket();
+  AVPacket* getFreeVideoPacket(); /* get a free video packet from the pool: IMPORTANT: refcount will be set to 1 for you! If you need to share it with multiple encoder call: pkt->addRef(NUMBER_OF_SHARED_ENCODERS) */
   AVPacket* getFreeAudioPacket();
   
   bool allocateVideoFrames(size_t nframes, uint32_t nbytes); /* allocate nframes which will contain nbytes of video data */
@@ -48,7 +48,7 @@ class MemoryPool {
 
   /* ref counting for the AVPackets */
   void release(AVPacket* pkt);
-  void addRef(AVPacket* pkt);
+  void addRef(AVPacket* pkt, int count = 1); /* you can add multiple refcounts by change the count, this is handy when you want to share a AVPacket with multiple encoder threads */
 
  private:
   AVPacket* getFreePacket(uint8_t type);
@@ -108,19 +108,19 @@ inline void MemoryPool::release(AVPacket* pkt) {
   }
 }
 
-inline void MemoryPool::addRef(AVPacket* pkt) {
+inline void MemoryPool::addRef(AVPacket* pkt, int count) {
 
   if(pkt->type == AV_TYPE_VIDEO) {
 
     lockVideo();
-      pkt->refcount++;
+      pkt->refcount += count;
     unlockVideo();
 
   }
   else if(pkt->type == AV_TYPE_AUDIO) {
 
     lockAudio();
-      pkt->refcount--;
+      pkt->refcount += count;
     unlockAudio();
 
   }

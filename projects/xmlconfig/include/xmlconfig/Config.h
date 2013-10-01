@@ -95,6 +95,7 @@ class Config {
       return result;
   }
 
+  bool doesNodeExists(xml_node<>* parent, std::string path);
   bool parsePath(std::string& path, std::vector<std::string>& result);
   xml_node<>* getNode(std::string path); /* get node from the "root" element */
   xml_node<>* getNode(xml_node<>* parent, std::string path); /* get node from the given parent */
@@ -186,6 +187,35 @@ inline xml_node<>* Config::getNode(xml_node<>* parent, std::string path) {
   }
   return child;
 }
+
+// @todo - we should merge this function with get node
+inline bool Config::doesNodeExists(xml_node<>* parent, std::string path) {
+
+  if(!parent) {
+    throw ConfigException("error: cannot getNode() because given parent is null.");
+  }
+
+  std::vector<std::string> els;
+  if(!parsePath(path, els)) {
+    throw ConfigException("error: cannot getNode() because we cannot find it.");
+  }
+ 
+  std::vector<std::string>::iterator it = els.begin();
+  xml_node<>* child = parent;
+  xml_node<>* prev_child = child;
+
+  while(it != els.end()) {
+    std::string el = *it;
+    prev_child = child;
+    child = prev_child->first_node(el.c_str());
+    if(!child) {
+      return false;
+    }
+    ++it;
+  }
+  return true;
+}
+
 
 inline xml_node<>* Config::getNode(std::string path) {
   return getNode(&doc, path);

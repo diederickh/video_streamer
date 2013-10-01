@@ -108,7 +108,7 @@ bool VideoStreamer::setup() {
     flv_writer.setAudioType(encoder_audio_mode_to_flv(audio_settings.mode));
   }
   
-  rtmp_writer.setURL(server_settings.url);
+  rtmp_writer.setup(server_settings);
 
   state = VS_STATE_SETUP;
 

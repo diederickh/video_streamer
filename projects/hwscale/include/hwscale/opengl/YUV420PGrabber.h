@@ -19,11 +19,13 @@ extern "C" {
 #  include <uv.h>  
 }
 
+
 #if defined(__APPLE__)
-#  if !defined(__gl_h_) 
+#  if !defined(GL_TRUE)
 #    include <OpenGL/gl3.h>
 #    include <OpenGL/glext.h>
 #  endif
+
 #else 
 #  include <GLXW/glxw.h>
 #endif
@@ -36,7 +38,7 @@ extern "C" {
 
 // -----------------------------------------------------
 #if YUV420P_GRABBER_GLSL_VERSION == 120
-static const char* YUV420P_Y_VS = ""
+static const char* YUV420P_YUV_VS = ""
   "#version 120\n"
   "#extension GL_EXT_gpu_shader4 : require\n" // we want gl_VertexID
   "const vec2 vert_data[4] = vec2[]("
@@ -73,14 +75,25 @@ static const char* YUV420P_Y_FS = ""
   "}"
   ;
 
-static const char* YUV420P_UV_FS = ""
+static const char* YUV420P_U_FS = ""
   "#version 120\n"
   "uniform sampler2D u_tex;"
   "varying vec2 v_tex;"
   "void main() {"
-  " vec3 tc = texture2D(u_tex, v_tex).rgb; "
-  " gl_FragData[0].r = -(tc.r * 0.148) - (tc.g * 0.291) + (tc.b * 0.439) + 0.5; "
-  " gl_FragData[1].r =  (tc.r * 0.439) - (tc.g * 0.368) - (tc.b * 0.071) + 0.5; "
+  "  vec3 tc = texture2D(u_tex, v_tex).rgb; "
+  "  gl_FragColor = vec4(1.0);"
+  "  gl_FragColor.r = -(tc.r * 0.148) - (tc.g * 0.291) + (tc.b * 0.439) + 0.5; "
+  "}"
+  ;
+
+static const char* YUV420P_V_FS = ""
+  "#version 120\n"
+  "uniform sampler2D u_tex;"
+  "varying vec2 v_tex;"
+  "void main() {"
+  "  vec3 tc = texture2D(u_tex, v_tex).rgb; "
+  "  gl_FragColor = vec4(1.0);"
+  "  gl_FragColor.r =  (tc.r * 0.439) - (tc.g * 0.368) - (tc.b * 0.071) + 0.5; "
   "}"
   ;
 
@@ -93,7 +106,7 @@ static const char* YUV420P_PT_FS = ""
   "}"
   ;
 
-#error "Need to update the YUV420P grabber for GLSL 120"
+//#error "Need to update the YUV420P grabber for GLSL 120"
 
 #elif YUV420P_GRABBER_GLSL_VERSION == 150
 
@@ -324,6 +337,7 @@ inline void YUV420PGrabber::addSize(int id, int w, int h) {
   s.yh = h;
   s.uvw = w >> 1;
   s.uvh = h >> 1;
+
   s.id = id;
   sizes.push_back(s);
 }
