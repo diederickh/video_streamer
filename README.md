@@ -1,6 +1,6 @@
 # VideoStreamer
 
-_Documentation will be added at when we have a working version of this lib_
+_Documentation will be added when we have a working version of this lib_
 
 
 ## Things to be aware of
