@@ -6,7 +6,8 @@
 void videostreamer_on_rtmp_disconnect(RTMPWriter* rtmp, void* user) {
   printf("rtmpwriter - got disconnected.\n");
   VideoStreamer* vs = static_cast<VideoStreamer*>(user);
-  vs->shutdown();
+  vs->stop();
+  vs->start();
 }
 
 // ----------------------------------------------------------------------
@@ -165,7 +166,6 @@ bool VideoStreamer::start() {
     return false;
   }
 
-
   enc_thread.start();
   rtmp_thread.start();
 
@@ -198,6 +198,7 @@ bool VideoStreamer::stop() {
   return true;
 }
 
+/*
 bool VideoStreamer::shutdown() {
   
   if(state == VS_STATE_NONE) {
@@ -206,19 +207,31 @@ bool VideoStreamer::shutdown() {
   
   printf("stopping the encoder thread now.\n");
   enc_thread.stop();
-  enc_thread.join();
+
 
   return true;
 }
+*/
 
-void VideoStreamer::addAudio(AVPacket* pkt) {
-  assert(state == VS_STATE_STARTED);
+bool VideoStreamer::addAudio(AVPacket* pkt) {
+
+  if(state != VS_STATE_STARTED) {
+    printf("error: cannot add audio, the VideoStreamer isn't started yet.\n");
+    return false;
+  }
+
   enc_thread.addPacket(pkt);
+  return true;
 }
 
-void VideoStreamer::addVideo(AVPacket* pkt) {
-  assert(state == VS_STATE_STARTED);
+bool VideoStreamer::addVideo(AVPacket* pkt) {
+
+  if(state != VS_STATE_STARTED) {
+    return false;
+  }
+
   enc_thread.addPacket(pkt);
+  return true;
 }
 
 // -----------------------------------------

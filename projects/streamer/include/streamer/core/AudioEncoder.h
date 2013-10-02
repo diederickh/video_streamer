@@ -50,6 +50,7 @@ class AudioEncoder {
   bool setup(AudioSettings settings);
   bool initialize();
   bool encodePacket(AVPacket* p, FLVTag& result);
+  bool shutdown();
  private:
   int nchannels;
   AudioSettings settings;

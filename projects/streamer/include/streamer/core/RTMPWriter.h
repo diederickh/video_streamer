@@ -51,7 +51,6 @@ class RTMPWriter {
   void reconnect();
  private:
   ServerSettings settings;
-  //  bool is_initialized;
   RTMP* rtmp;
   int state; 
   rtmp_callback cb_disconnect; /* when set, it gets called when we get disconnected */

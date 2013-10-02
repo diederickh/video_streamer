@@ -54,6 +54,8 @@ bool FLVWriter::close() {
   
   rewriteMetaData();
 
+  printf("FLVWriter::close() -- %ld\n", bs.size());
+
   return true;
 }
 

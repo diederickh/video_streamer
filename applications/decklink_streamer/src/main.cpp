@@ -314,7 +314,10 @@ int main() {
         pkt->y_offset = size.y_offset;
         pkt->u_offset = size.u_offset;
         pkt->v_offset = size.v_offset;
-        streamer.addVideo(pkt);
+        if(!streamer.addVideo(pkt)) {
+          printf("warning: cannot add a video packet .. probably disconnect...\n");
+          pkt->release();
+        }
       }
       else {
         printf("warning: cannot get a free video packet. add more to the pool and make sure that you run this in release mode.\n");

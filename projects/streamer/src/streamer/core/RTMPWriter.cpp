@@ -19,7 +19,6 @@ RTMPData::RTMPData()
 
 RTMPWriter::RTMPWriter() 
   :rtmp(NULL)
-   //  ,is_initialized(false)
   ,state(RW_STATE_NONE)
   ,cb_disconnect(NULL)
   ,cb_user(NULL)
@@ -124,7 +123,6 @@ bool RTMPWriter::initialize() {
     return false;
   }
 
-
   state = RW_STATE_INITIALIZED;
 
   return true;
@@ -148,6 +146,7 @@ void RTMPWriter::write(uint8_t* data, size_t nbytes) {
   int r = RTMP_Write(rtmp, (const char*)data, (int)nbytes);
   if(r < 0) {
 
+    // @todo - we should close and cleanup here!!!!
     printf("error: something went wrong while trying to write data to the rtmp server.\n");
     if(state == RW_STATE_DISCONNECTED) {
       return;
@@ -162,7 +161,6 @@ void RTMPWriter::write(uint8_t* data, size_t nbytes) {
 
     }
   }
-
 }
 
 void RTMPWriter::reconnect() {
@@ -183,6 +181,7 @@ void RTMPWriter::reconnect() {
   initialize();
 }
 
+// @todo - read() is blocking, we would need to handle handle the socket ourself
 void RTMPWriter::read() {
 
   if(state != RW_STATE_INITIALIZED) {
@@ -190,7 +189,6 @@ void RTMPWriter::read() {
     return;
   }
 
-  //RTMPPacket pkt = {0};
   char buf[512];
   int r = RTMP_Read(rtmp, buf, sizeof(buf));
   printf("read: >> %d << \n", r);

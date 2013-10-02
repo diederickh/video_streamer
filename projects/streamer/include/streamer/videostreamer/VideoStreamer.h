@@ -71,12 +71,12 @@ class VideoStreamer {
   bool start();
   bool isStarted(); 
   bool stop();
-  bool shutdown();
+  //  bool shutdown();
 
   bool wantsVideo(); /* returns true when we need a new video frame, used in "direct" mode, w/o the daemon */
 
-  void addVideo(AVPacket* pkt); /* add a new packet to encode - see the MemoryPool description in the header for some info about refcounts */
-  void addAudio(AVPacket* pkt); /* add a new packet to encode - see the MemoryPool description in the header for some info about refcounts */
+  bool addVideo(AVPacket* pkt); /* add a new packet to encode - returns false when we cannot add it, you should release the packet yourself! - see the MemoryPool description in the header for some info about refcounts */
+  bool addAudio(AVPacket* pkt); /* add a new packet to encode - returns false when we cannot add it, you should release the packet yourself! - see the MemoryPool description in the header for some info about refcounts */
 
   uint32_t getTimeStamp(); /* get the current timestamp in mills, relative from the 'start' timestamp */
   uint16_t getVideoWidth(); /* get the width of the output video, as defined in the settings - width used by encoder */

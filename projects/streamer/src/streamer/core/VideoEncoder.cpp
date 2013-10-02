@@ -17,9 +17,9 @@ VideoEncoder::VideoEncoder()
 }
 
 VideoEncoder::~VideoEncoder() {
-  if(ofs.is_open()) {
-    closeFile();
-  }
+
+
+  shutdown();
 
   printf("error: need to x264_encoder_close etc. \n");
 }
@@ -50,6 +50,8 @@ bool VideoEncoder::setup(VideoSettings s) {
 bool VideoEncoder::initialize() {
   assert(settings.width);
   assert(settings.height);
+
+  frame_num = 0;
 
   if(!initializeX264()) {
     return false;
@@ -342,13 +344,23 @@ bool VideoEncoder::closeFile() {
 
 bool VideoEncoder::shutdown() {
 
+  if(ofs.is_open()) {
+    closeFile();
+  }
+
   if(!encoder) {
     printf("error: encoder is not initialized.\n");
     return false;
   }
 
+  printf("Shutting down the video encoder.\n");
+
   x264_encoder_close(encoder);
+  encoder = NULL;
+
+  frame_num = 0;
   printf("x264: %p\n", encoder);
 
+  return true;
 }
 

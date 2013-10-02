@@ -117,6 +117,12 @@ bool AudioEncoder::initialize() {
   return true;
 }
 
+bool AudioEncoder::shutdown() {
+  // @todo - cleanup audio encoder here
+  printf("ERROR: WE STILL NEED TO IMPLEMENT SHUTDOWN FOR AUDIOENCODER.\n");
+  return false;
+}
+
 // we expect the AVPacket.data to contain either interleaved S16, or  interleaved F32 audio
 bool AudioEncoder::encodePacket(AVPacket* p, FLVTag& tag) {
   assert(lame_flags);

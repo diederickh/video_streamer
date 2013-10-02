@@ -27,14 +27,16 @@ void encoder_thread_func(void* user);
 
 // ------------------------------------------------------------------
 
+#define ENCT_STATE_NONE 0
+#define ENCT_STATE_STARTED 1
+
 class EncoderThread {
  public:
   EncoderThread(FLVWriter& flv, VideoEncoder& ve, AudioEncoder& ae);
   ~EncoderThread();
   bool start();
-  bool stop();
+  bool stop(); /* stops the thread and joins it - this blocks */
   void addPacket(AVPacket* pkt); /* add a packet that needs to be encoded */
-  void join(); /* join the thread */
  public:
   FLVWriter& flv;
   AudioEncoder& audio_encoder;
@@ -44,10 +46,7 @@ class EncoderThread {
   uv_cond_t cv;
   uv_mutex_t mutex;
   std::vector<AVPacket*> work;
-  std::vector<AVPacket*> video_packets;
-
-  uv_thread_t congest_thread;
-  uv_mutex_t congest_mutex;
+  int state;
 };
 
 
