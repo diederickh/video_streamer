@@ -103,6 +103,11 @@ void encoder_thread_func(void* user) {
   printf("++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
   printf("frames created: %lld\n", nframes);
   printf("++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
+
+  uv_mutex_lock(&enc.mutex);
+    enc.work.clear();
+    enc.video_packets.clear();
+  uv_mutex_unlock(&enc.mutex);
 }
 
 
@@ -123,6 +128,7 @@ EncoderThread::EncoderThread(FLVWriter& flv, VideoEncoder& venc, AudioEncoder& a
 }
 
 EncoderThread::~EncoderThread() {
+
   if(!must_stop) {
     stop();
   }
@@ -138,6 +144,10 @@ EncoderThread::~EncoderThread() {
   uv_cond_destroy(&cv);
 #endif
   must_stop = true;                       
+}
+
+void EncoderThread::join() {
+  uv_thread_join(&thread);  
 }
 
 bool EncoderThread::start() {

@@ -16,6 +16,13 @@ extern "C" {
 
 // ---------------------------------------------------
 
+void rtmp_sigpipe_handler(int signum);
+
+class RTMPWriter;
+typedef void(*rtmp_callback)(RTMPWriter* writer, void* user);  // e.g. used for the rtmp callback
+
+// ---------------------------------------------------
+
 struct RTMPData {               /* represents the data of a FLVTag which contains either video, audio or script data */
   RTMPData();
   void putBytes(uint8_t* ptr, size_t nbytes);
@@ -26,6 +33,10 @@ struct RTMPData {               /* represents the data of a FLVTag which contain
 };
 
 // ---------------------------------------------------
+#define RW_STATE_NONE 0
+#define RW_STATE_INITIALIZED 1
+#define RW_STATE_RECONNECTING 2
+#define RW_STATE_DISCONNECTED 3
 
 class RTMPWriter {
  public:
@@ -35,10 +46,16 @@ class RTMPWriter {
   bool initialize();
   void write(uint8_t* data, size_t nbytes);
   void read();
+  void setDisconnectHandler(rtmp_callback disconnectCB, void* user);
+ private:
+  void reconnect();
  private:
   ServerSettings settings;
-  bool is_initialized;
+  //  bool is_initialized;
   RTMP* rtmp;
+  int state; 
+  rtmp_callback cb_disconnect; /* when set, it gets called when we get disconnected */
+  void* cb_user; /* gets passed into cb_disconnect */
 };
 
 // ---------------------------------------------------
@@ -53,6 +70,11 @@ inline bool RTMPWriter::setup(ServerSettings ss) {
   settings = ss;
 
   return true;
+}
+
+inline void RTMPWriter::setDisconnectHandler(rtmp_callback disconnectCB, void* user) {
+  cb_disconnect = disconnectCB;
+  cb_user = user;
 }
 
 // ---------------------------------------------------

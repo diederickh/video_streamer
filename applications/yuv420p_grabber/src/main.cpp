@@ -10,7 +10,7 @@
 
   IMPORTANT: WE DO NOT YET CREATE MULTIPLE ENCODER INSTANCES - SO NO MULTIPLE VIDEO STREAMS YET
 
- */
+*/
 
 #if defined(GLFW_INCLUDE_GLCOREARB)
 #  undef GLFW_INCLUDE_GLCOREARB
@@ -144,7 +144,7 @@ int main() {
     
     if(grabber.hasNewFrame()) {
       grabber.beginGrab();
-        anim.draw();
+      anim.draw();
       grabber.endGrab();
       grabber.downloadTextures();
 
@@ -169,7 +169,6 @@ int main() {
     glfwSwapBuffers(win);
     glfwPollEvents();
   }
-
 
   glfwTerminate();
   return EXIT_SUCCESS;

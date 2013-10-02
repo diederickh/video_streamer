@@ -32,7 +32,9 @@ bool StreamerConfiguration::hasServer() {
 
 // ---------------------------------------
 
-VideoStreamerConfig::VideoStreamerConfig() {
+VideoStreamerConfig::VideoStreamerConfig() 
+  :default_stream_id(0)  
+{
 }
 
 VideoStreamerConfig::~VideoStreamerConfig() {
@@ -53,6 +55,9 @@ bool VideoStreamerConfig::load(std::string filepath) {
   StreamerConfiguration* sc = NULL;
 
   try {
+    xml_node<>* settings = conf.getNode("videostreamer/settings");
+    default_stream_id = conf.readU32(settings, "default_stream_id");
+    
     xml_node<>* streams = conf.getNode("videostreamer/streams");
     for(xml_node<>* stream = streams->first_node(); stream; stream = stream->next_sibling()) {
       sc = new StreamerConfiguration();
@@ -60,13 +65,17 @@ bool VideoStreamerConfig::load(std::string filepath) {
       sc->video.width = conf.readU16(stream, "video/width");
       sc->video.height = conf.readU16(stream, "video/height");
       sc->video.fps = conf.readU16(stream, "video/fps");
-      sc->audio.samplerate = conf.readU32(stream, "audio/samplerate");
-      sc->audio.bitsize = conf.readU8(stream, "audio/bitsize");
-      sc->audio.quality = conf.readU8(stream, "audio/quality");
-      sc->audio.bitrate = conf.readU32(stream, "audio/bitrate");
-      sc->audio.mode = conf.readU32(stream, "audio/mode");
-      sc->audio.in_bitsize = conf.readU8(stream, "audio/in_bitsize");
-      sc->audio.in_interleaved = conf.readU8(stream, "audio/in_interleaved");
+
+      if(conf.doesNodeExists(stream, "audio")) {
+        sc->audio.samplerate = conf.readU32(stream, "audio/samplerate");
+        sc->audio.bitsize = conf.readU8(stream, "audio/bitsize");
+        sc->audio.quality = conf.readU8(stream, "audio/quality");
+        sc->audio.bitrate = conf.readU32(stream, "audio/bitrate");
+        sc->audio.mode = conf.readU32(stream, "audio/mode");
+        sc->audio.in_bitsize = conf.readU8(stream, "audio/in_bitsize");
+        sc->audio.in_interleaved = conf.readU8(stream, "audio/in_interleaved");
+      }
+
       sc->server.url = conf.readString(stream, "server/url");
       
       if(conf.doesNodeExists(stream, "server/username")) {

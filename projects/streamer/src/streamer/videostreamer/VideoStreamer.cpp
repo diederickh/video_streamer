@@ -3,6 +3,14 @@
 #include <streamer/videostreamer/VideoStreamer.h>
 #include <streamer/videostreamer/VideoStreamerConfig.h>
 
+void videostreamer_on_rtmp_disconnect(RTMPWriter* rtmp, void* user) {
+  printf("rtmpwriter - got disconnected.\n");
+  VideoStreamer* vs = static_cast<VideoStreamer*>(user);
+  vs->shutdown();
+}
+
+// ----------------------------------------------------------------------
+
 VideoStreamer::VideoStreamer() 
   :flv_writer(flv_bitstream)
   ,rtmp_thread(flv_writer, rtmp_writer)
@@ -47,7 +55,11 @@ bool VideoStreamer::loadSettings(std::string filepath) {
     return false;
   }
 
-  StreamerConfiguration* sc = cfg[0]; // we just pick the first found config
+  StreamerConfiguration* sc = cfg.getDefault(); // we just pick the first found config
+  if(!sc) {
+    printf("error: cannot find a default configuration, did you set <default_stream_id></default_stream_id> in you xml?");
+    return false;
+  }
 
   if(sc->hasAudio()) {
     setAudioSettings(sc->audio);
@@ -107,7 +119,8 @@ bool VideoStreamer::setup() {
     flv_writer.setAudioSize(encoder_audio_bitsize_to_flv(audio_settings.bitsize));
     flv_writer.setAudioType(encoder_audio_mode_to_flv(audio_settings.mode));
   }
-  
+
+  rtmp_writer.setDisconnectHandler(videostreamer_on_rtmp_disconnect, this);
   rtmp_writer.setup(server_settings);
 
   state = VS_STATE_SETUP;
@@ -181,6 +194,19 @@ bool VideoStreamer::stop() {
   }
 
   state = VS_STATE_SETUP;
+
+  return true;
+}
+
+bool VideoStreamer::shutdown() {
+  
+  if(state == VS_STATE_NONE) {
+    return false;
+  }
+  
+  printf("stopping the encoder thread now.\n");
+  enc_thread.stop();
+  enc_thread.join();
 
   return true;
 }

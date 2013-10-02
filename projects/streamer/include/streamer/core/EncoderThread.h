@@ -34,6 +34,7 @@ class EncoderThread {
   bool start();
   bool stop();
   void addPacket(AVPacket* pkt); /* add a packet that needs to be encoded */
+  void join(); /* join the thread */
  public:
   FLVWriter& flv;
   AudioEncoder& audio_encoder;
@@ -48,5 +49,6 @@ class EncoderThread {
   uv_thread_t congest_thread;
   uv_mutex_t congest_mutex;
 };
+
 
 #endif

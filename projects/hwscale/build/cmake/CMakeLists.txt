@@ -20,7 +20,7 @@ set(hwscale_source_files
 )
 
 set(hwscale_definitions
-  -DGLFW_INCLUDE_GLCOREARB
+#  -DGLFW_INCLUDE_GLCOREARB   # tmp disabled for the decklink streamer on mac @todo can we leave it out?
   -DYUV420P_GRABBER_GLSL_VERSION=150
 )
 

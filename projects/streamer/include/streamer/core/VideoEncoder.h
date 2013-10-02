@@ -51,6 +51,7 @@ class VideoEncoder {
   bool initialize(); /* initialize all members, first set all state (e.g. call setup()) */
   bool createDecoderConfigurationRecord(AVCDecoderConfigurationRecord& rec); /* generates the SPS and PPS nal units */
   bool encodePacket(AVPacket* p, FLVTag& result);
+  bool shutdown(); /* deinitialize everything, this is necessary if you want to reinitialize the encoder */
 
   bool openFile(std::string filepath);
   bool writeTagToFile(FLVTag& tag);

@@ -50,6 +50,8 @@ uint8_t encoder_audio_mode_to_flv(uint8_t v);
 uint8_t encoder_audio_bitsize_to_flv(uint8_t v);
 // ---------------------------------
 
+void videostreamer_on_rtmp_disconnect(RTMPWriter* rtmp, void* user); /* gets called when we get disconnected (receive a sigpipe actually) from librtmp */
+
 class VideoStreamer {
  public:
   VideoStreamer();
@@ -69,6 +71,7 @@ class VideoStreamer {
   bool start();
   bool isStarted(); 
   bool stop();
+  bool shutdown();
 
   bool wantsVideo(); /* returns true when we need a new video frame, used in "direct" mode, w/o the daemon */
 

@@ -340,3 +340,15 @@ bool VideoEncoder::closeFile() {
   return true;
 }
 
+bool VideoEncoder::shutdown() {
+
+  if(!encoder) {
+    printf("error: encoder is not initialized.\n");
+    return false;
+  }
+
+  x264_encoder_close(encoder);
+  printf("x264: %p\n", encoder);
+
+}
+

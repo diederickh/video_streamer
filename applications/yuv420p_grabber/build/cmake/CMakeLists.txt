@@ -53,7 +53,6 @@ if(APPLE)
     )
 endif()
 
-
 set(app_install_files
   ${streamer_install_files}
   ${CMAKE_CURRENT_LIST_DIR}/yuv420p_grabber.xml

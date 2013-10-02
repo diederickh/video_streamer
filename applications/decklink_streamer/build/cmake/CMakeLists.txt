@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 2.8)
 
 project(DeckLinkStreamer)
 
+set(USE_64BIT ON)
+
 include(${CMAKE_CURRENT_LIST_DIR}/../../../../tools/cmake/Triplet.cmake)  # include triplet
 include(${CMAKE_CURRENT_LIST_DIR}/../../../../projects/streamer/build/cmake/CMakeLists.txt) # streamer
 include(${CMAKE_CURRENT_LIST_DIR}/../../../../projects/xmlconfig/build/cmake/CMakeLists.txt) # xmlconfig
@@ -32,10 +34,21 @@ set(dls_libraries
   ${streamer_libraries}
   ${decklink_libraries}
   ${hwscale_libraries}
-  ${extern_dir}/lib/glfw3.lib
-  ${extern_dir}/lib/libyuv.lib
+
   ${OPENGL_gl_LIBRARY}
 )
+
+if(WIN32)
+  list(APPEND dls_libraries
+    ${extern_dir}/lib/glfw3.lib
+    ${extern_dir}/lib/libyuv.lib
+    )
+elseif(APPLE)
+  list(APPEND dls_libraries
+    ${extern_dir}/lib/libyuv.a
+    ${extern_dir}/lib/libglfw3.a
+    )
+endif()
 
 set(dls_install_files
   ${streamer_install_files}
@@ -63,5 +76,9 @@ add_dependencies(${dls_name} ${decklink_dependencies})
 target_link_libraries(${dls_name} ${dls_libraries})
 
 install(TARGETS ${dls_name} DESTINATION bin)
+
+if(NOT EXISTS ${CMAKE_INSTALL_PREFIX}/bin/decklink_streamer.xml)
+#  install(FILES ${CMAKE_CURRENT_LIST_DIR}/decklink_streamer.xml DESTINATION bin)
+endif()
 
 install(FILES ${dls_install_files} DESTINATION bin)

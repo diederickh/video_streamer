@@ -40,7 +40,6 @@ struct AVPacket {
   void release();  /* call Release when you don't use this packet anymore, so the memory pool can reuse  it */
   
   void copy(uint8_t* buf, size_t nbytes); /* copy the given bytes to `data` */
-  
 
   void allocate(size_t nbytes);  /* make sure that the data member can hold `nbytes` of data */
   uint8_t type;                  /* either AV_TYPE_VIDEO or AV_TYPE_AUDIO */

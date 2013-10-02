@@ -87,11 +87,13 @@ class VideoStreamerConfig {
   VideoStreamerConfig();
   ~VideoStreamerConfig();
   bool load(std::string filepath); /* load the xml from a full path */
+  StreamerConfiguration* getDefault(); /* returns the default configuration object, which can be set in the main settings with <default_stream_id></default_stream_id> */
   StreamerConfiguration* getByID(uint32_t id); /* each stream must have a unique id, you can use this function to get the configuration for the given ID, if not found we return NULL */
   size_t size(); /* returns the number of stream configs */
   StreamerConfiguration* operator[](size_t dx);
  public:
   std::vector<StreamerConfiguration*> configs; /* VideoStreamerConfig takes ownership of all configs and will destory them when the class is destroyed */
+  uint32_t default_stream_id; /* in the xml you can define the <default_stream_id></default_stream_id> that is selected when you load a settings file using VideoStreamer::loadSettings() */
 };
 
 inline StreamerConfiguration* VideoStreamerConfig::getByID(uint32_t id) {
@@ -102,6 +104,10 @@ inline StreamerConfiguration* VideoStreamerConfig::getByID(uint32_t id) {
     }
   }
   return NULL;
+}
+
+inline StreamerConfiguration* VideoStreamerConfig::getDefault() {
+  return getByID(default_stream_id);
 }
 
 inline StreamerConfiguration* VideoStreamerConfig::operator[](size_t dx) {

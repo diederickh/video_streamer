@@ -1,22 +1,26 @@
 extern "C" {
 #  include <uv.h>
+
+#  define GLFW_INCLUDE_NONE
+#  include <GLXW/glxw.h>
+#  include <GLFW/glfw3.h>
 }
+
+#include <signal.h>
+#include <fstream>
 #include <iostream>
 #include <streamer/videostreamer/VideoStreamer.h>
 #include <streamer/videostreamer/VideoStreamerConfig.h>
+#include <streamer/core/MemoryPool.h>
 #include <decklink/DeckLink.h>
 #include <libyuv/libyuv.h>
 #include <tinylib/tinylib.h>
-#include <GLXW/glxw.h>
-#include <GLFW/glfw3.h>
+
 #include <decklink_streamer/FastI420Upload.h>
 #include <hwscale/opengl/YUV420PGrabber.h>
 
-#define WRITE_YUV_TO_FILE 0
-
-#if WRITE_YUV_TO_FILE
-#  include <fstream>
-#endif
+#define WRITE_INPUT_TO_FILE 0
+#define WRITE_YUV420_TO_FILE 0
 
 static const char* DEBUG_VS = ""
   "#version 150\n"
@@ -80,10 +84,26 @@ void error_callback(int err, const char* desc);
 void resize_callback(GLFWwindow* window, int width, int height);
 void frame_callback(IDeckLinkVideoInputFrame* vframe, IDeckLinkAudioInputPacket* aframe, void* user);
 
+#define INPUT_MODE 1 
+#if INPUT_MODE == 0
+#  define INPUT_WIDTH 1920
+#  define INPUT_HEIGHT 1080
+#  define INPUT_NBYTES 3029400
+#  define INPUT_NAME bmdModeHD1080p24
+#elif INPUT_MODE == 1
+#  define INPUT_WIDTH 720
+#  define INPUT_HEIGHT 576
+#  define INPUT_NBYTES 829440
+#  define INPUT_NAME bmdModePAL
+#else
+#   error "Undefined size."
+#endif
+
 VideoStreamer streamer;
 YUV420PGrabber grabber;
 FastI420Upload fast_upload;
-uint8_t yuv420p[1382400]; // our buffer for yuv420p 1280x720
+
+uint8_t* yuv420p = NULL;
 uv_mutex_t frame_mutex;
 bool new_frame;
 
@@ -92,11 +112,12 @@ GLuint vert;
 GLuint frag;
 GLuint prog;
 
-#if WRITE_YUV_TO_FILE
-std::ofstream ofs;
-#endif
+std::ofstream ofs_raw; // yuv to write the data we get from decklink
+std::ofstream ofs_yuv; // used to write the converted  yuv
 
 int main() {
+
+
   printf("DeckLink Stream.\n");
 
   if(!glfwInit()) {
@@ -116,7 +137,15 @@ int main() {
     ::exit(EXIT_FAILURE);
   }
 
-  if(!dl.setVideoMode(bmdModeHD720p60, bmdFormat8BitYUV)) {
+  if(!dl.setVideoMode(INPUT_NAME, bmdFormat8BitYUV)) {
+    ::exit(EXIT_FAILURE);
+  }
+ 
+  int yuv420_nbytes = INPUT_WIDTH * INPUT_HEIGHT * 2;
+  printf("yuv420_nbytes: %d\n", yuv420_nbytes);
+  yuv420p = new uint8_t[yuv420_nbytes];
+  if(!yuv420p) {
+    printf("error: cannot allocated the buffer to hold the yuv420 data.\n");
     ::exit(EXIT_FAILURE);
   }
 
@@ -151,21 +180,43 @@ int main() {
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-
-#if WRITE_YUV_TO_FILE
-  ofs.open("yuv.raw", std::ios::out | std::ios::binary);
-  if(!ofs.is_open()) {
-    printf("error: cannot output output file.\n");
+#if WRITE_INPUT_TO_FILE
+  std::string inputpath = rx_get_exe_path() +"input.raw";
+  ofs_raw.open(inputpath.c_str(), std::ios::out | std::ios::binary);
+  if(!ofs_raw.is_open()) {
+    printf("error: cannot open output file.\n");
     ::exit(EXIT_FAILURE);
   }
 #endif
 
+#if WRITE_YUV420_TO_FILE
+  std::string yuvpath = rx_get_exe_path() +"yuv420p.raw";
+  ofs_yuv.open(yuvpath.c_str(), std::ios::out | std::ios::binary);
+  if(!ofs_yuv.is_open()) {
+    printf("error: cannot open output file for yuv420p.\n");
+    ::exit(EXIT_FAILURE);
+  }
+#endif 
+
+  grabber.addSize(0, w >> 2, h >> 2);
+  if(!grabber.setup(w, h, 25)) {
+    //  if(!grabber.setup(w, h, streamer.getVideoWidth(), streamer.getVideoHeight(), 25)) {
+    printf("error: cannot setup the yuv grabber.\n");
+    ::exit(EXIT_FAILURE);
+  }
   // load settings.
-  std::string config_path = rx_get_exe_path() +"streamer.xml";
+  std::string config_path = rx_get_exe_path() +"decklink_streamer.xml";
   if(!streamer.loadSettings(config_path)) {
     printf("error: could not load the settings for the streamer.\n");
     ::exit(EXIT_FAILURE);
   }
+
+  YUV420PSize size = grabber.getSize(0);
+  streamer.setStrides(size.strides[0], size.strides[1], size.strides[2]);
+  streamer.setVideoWidth(size.yw);
+  streamer.setVideoHeight(size.yh);
+  printf("video output: %d x %d\n", size.yw, size.yh);
+
   if(!streamer.setup()) {
     printf("error: could not setup the streamer.\n");
     ::exit(EXIT_FAILURE);
@@ -175,14 +226,9 @@ int main() {
     ::exit(EXIT_FAILURE);
   }
 
-  if(!grabber.setup(w, h, streamer.getVideoWidth(), streamer.getVideoHeight(), 25)) {
-    printf("error: cannot setup the yuv grabber.\n");
-    ::exit(EXIT_FAILURE);
-  }
-
   uv_mutex_init(&frame_mutex);
 
-  if(!fast_upload.setup(w, h)) {
+  if(!fast_upload.setup(INPUT_WIDTH, INPUT_HEIGHT)) {
     ::exit(EXIT_FAILURE);
   }
 
@@ -190,9 +236,12 @@ int main() {
     ::exit(EXIT_FAILURE);
   }
 
+  uint32_t offset_u = INPUT_WIDTH * INPUT_HEIGHT;
+  uint32_t offset_v = offset_u + (INPUT_WIDTH * 0.5) * (INPUT_HEIGHT * 0.5);
   uint8_t* dest_y = yuv420p;
-  uint8_t* dest_u = &yuv420p[(w * h)];
-  uint8_t* dest_v = &yuv420p[(uint32_t)((w * h) + (w >> 1 ) * (h >> 1))];
+  uint8_t* dest_u = &yuv420p[offset_u];
+  uint8_t* dest_v = &yuv420p[offset_v];
+  printf("offset_u: %d, offset_v: %d\n", offset_u, offset_v);
 
   glGenVertexArrays(1, &vao);
   glBindVertexArray(vao);
@@ -207,6 +256,9 @@ int main() {
   glUniform1i(glGetUniformLocation(prog, "v_tex"), 2);
 
   grabber.start();
+
+  MemoryPool memory_pool; // we use a memory pool that provides us with AVPackets
+  memory_pool.allocateVideoFrames(10, grabber.getNumBytes());
 
   uint32_t start_time = grabber.getTimeStamp();
 
@@ -223,12 +275,11 @@ int main() {
       }
     }
     uv_mutex_unlock(&frame_mutex);
-    
+
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    
+
     if(grabber.hasNewFrame()) {
 
-      printf("grabbing!\n");
       grabber.beginGrab();
       
       glBindVertexArray(vao);
@@ -253,34 +304,44 @@ int main() {
       uint32_t timestamp = streamer.getTimeStamp();
       uint32_t timediff = timestamp - start_time;
 
-      AVPacket* pkt = new AVPacket();
-      printf("-- %d\n", timestamp);
-      pkt->setTimeStamp(timestamp);
-      pkt->makeVideoPacket();
-      //std::copy(dest_y, dest_y + 1382400, std::back_inserter(pkt->data));
-      std::copy(grabber.getPlaneY(), grabber.getPlaneY() + grabber.getNumBytes(), std::back_inserter(pkt->data));
-      streamer.addVideo(pkt);
+      AVPacket* pkt = memory_pool.getFreeVideoPacket();
+      if(pkt) {
+        pkt->setTimeStamp(grabber.getTimeStamp());
+        pkt->makeVideoPacket();
+        pkt->data.assign(grabber.getPtr(), grabber.getPtr() + grabber.getNumBytes());
+
+        YUV420PSize size = grabber.getSize(0);
+        pkt->y_offset = size.y_offset;
+        pkt->u_offset = size.u_offset;
+        pkt->v_offset = size.v_offset;
+        streamer.addVideo(pkt);
+      }
+      else {
+        printf("warning: cannot get a free video packet. add more to the pool and make sure that you run this in release mode.\n");
+      }
+
 #endif
       //      grabber.draw();
     }
     grabber.draw();
     //else
 #if 0
-      glBindVertexArray(vao);
-      glUseProgram(prog);
+    glBindVertexArray(vao);
+    glUseProgram(prog);
 
-      glActiveTexture(GL_TEXTURE0);
-      glBindTexture(GL_TEXTURE_2D, fast_upload.tex_y);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, fast_upload.tex_y);
 
-      glActiveTexture(GL_TEXTURE1);
-      glBindTexture(GL_TEXTURE_2D, fast_upload.tex_u);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, fast_upload.tex_u);
 
-      glActiveTexture(GL_TEXTURE2);
-      glBindTexture(GL_TEXTURE_2D, fast_upload.tex_v);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, fast_upload.tex_v);
 
-      glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 #endif
-      //    }
+    //    }
+
     glfwSwapBuffers(win);
     glfwPollEvents();
   }
@@ -296,8 +357,10 @@ int main() {
 #endif
 
   glfwTerminate();
+
   return EXIT_SUCCESS;
 }
+
 
 void error_callback(int err, const char* desc) {
   printf("glfw error: %s (%d)\n", desc, err);
@@ -340,19 +403,32 @@ void frame_callback(IDeckLinkVideoInputFrame* vframe, IDeckLinkAudioInputPacket*
   uint32_t stride = vframe->GetRowBytes();
   uint8_t* uyvy422 = NULL;
 
+  if(w != INPUT_WIDTH || h != INPUT_HEIGHT) {
+    printf("error: the input size is not the same as the one defined.\n");
+    ::exit(EXIT_FAILURE);
+  }
+
   HRESULT r = vframe->GetBytes((void**)&uyvy422);
   if(r != S_OK) {
     printf("error: cannot get yuv bytes.\n");
     return ;
   }
 
+#if WRITE_INPUT_TO_FILE
+  if(ofs_raw.is_open()) {
+    ofs_raw.write((char*)uyvy422, stride * h);
+  }
+#endif
+
   uv_mutex_lock(&frame_mutex);
   {
     new_frame = true;
+    uint32_t offset_u = INPUT_WIDTH * INPUT_HEIGHT;
+    uint32_t offset_v = offset_u + (INPUT_WIDTH * 0.5) * (INPUT_HEIGHT * 0.5);
     uint8_t* dest_y = yuv420p;
-    uint8_t* dest_u = &yuv420p[(w * h)];
-    uint8_t* dest_v = &yuv420p[(uint32_t)((w * h) + (w >> 1 ) * (h >> 1))];
-  
+    uint8_t* dest_u = &yuv420p[offset_u];
+    uint8_t* dest_v = &yuv420p[offset_v];
+
     uint64_t n = uv_hrtime();
     libyuv::UYVYToI420(uyvy422, stride,
                        dest_y, w, 
@@ -361,19 +437,13 @@ void frame_callback(IDeckLinkVideoInputFrame* vframe, IDeckLinkAudioInputPacket*
                        w, h);
     uint64_t d = uv_hrtime() - n;
 
-#if WRITE_YUV_TO_FILE
-    if(ofs.is_open()) {
-
-size_t nbytes = (w * h) + (2 * (w >> 1) * (h >> 1));
-printf("writing..%ld\n", nbytes);
-ofs.write((char*)yuv420p, nbytes);
-    }
-#endif
+#if WRITE_YUV420_TO_FILE
+    int nbytes = INPUT_WIDTH * INPUT_HEIGHT * 2;
+    ofs_yuv.write((char*)yuv420p, nbytes);
+#endif    
     
   }
   uv_mutex_unlock(&frame_mutex);
 
-  
-  //fast_upload.update(dest_y, dest_u, dest_v);
-  //printf("frame: %d x %d, stride: %d, time: %lld ns. %f ms\n", w, h, stride, d, double(d/1000000.0));
 }
+
