@@ -6,8 +6,10 @@
 
 class FLVFileWriter : public FLVListener {
  public:
-  FLVFileWriter(std::string filepath);
+  FLVFileWriter();
   ~FLVFileWriter();
+  bool open(std::string filepath);
+  bool close();
   void onSignature(BitStream& bs);
   void onTag(BitStream& bs, FLVTag& tag);
  private:

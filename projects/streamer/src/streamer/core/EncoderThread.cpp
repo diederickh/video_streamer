@@ -79,6 +79,7 @@ void encoder_thread_func(void* user) {
   uv_mutex_lock(&enc.mutex);
     enc.work.clear();
     enc.state = ENCT_STATE_NONE; 
+    enc.flv.close();
   uv_mutex_unlock(&enc.mutex);
 
   enc.audio_encoder.shutdown();

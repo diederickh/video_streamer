@@ -46,9 +46,10 @@ class RTMPWriter {
   bool initialize();
   void write(uint8_t* data, size_t nbytes);
   void read();
-  void setDisconnectHandler(rtmp_callback disconnectCB, void* user);
+  void setCallbacks(rtmp_callback disconnectCB, void* user);
  private:
   void reconnect();
+  void close();
  private:
   ServerSettings settings;
   RTMP* rtmp;
@@ -71,7 +72,8 @@ inline bool RTMPWriter::setup(ServerSettings ss) {
   return true;
 }
 
-inline void RTMPWriter::setDisconnectHandler(rtmp_callback disconnectCB, void* user) {
+inline void RTMPWriter::setCallbacks(rtmp_callback disconnectCB, 
+                                     void* user) {
   cb_disconnect = disconnectCB;
   cb_user = user;
 }

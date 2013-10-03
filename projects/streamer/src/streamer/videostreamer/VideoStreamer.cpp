@@ -121,7 +121,8 @@ bool VideoStreamer::setup() {
     flv_writer.setAudioType(encoder_audio_mode_to_flv(audio_settings.mode));
   }
 
-  rtmp_writer.setDisconnectHandler(videostreamer_on_rtmp_disconnect, this);
+  rtmp_writer.setCallbacks(videostreamer_on_rtmp_disconnect,  this);
+
   rtmp_writer.setup(server_settings);
 
   state = VS_STATE_SETUP;
@@ -154,7 +155,14 @@ bool VideoStreamer::start() {
   }
 
   if(output_file.size() && !flv_file_writer) {
-    flv_file_writer = new FLVFileWriter(output_file);
+    flv_file_writer = new FLVFileWriter();
+
+    if(!flv_file_writer->open(output_file)) {
+      printf("error: cannot open the flv file writer output file.\n");
+      delete flv_file_writer;
+      return false;
+    }
+
     flv_writer.addListener(flv_file_writer);
   }
 
@@ -162,13 +170,19 @@ bool VideoStreamer::start() {
     return false;
   }
 
-  if(!rtmp_writer.initialize()) {
-    return false;
+  int max_connect_retries = 10;
+  int retries = 0;
+  while(retries < max_connect_retries) {
+    if(rtmp_writer.initialize()) {
+      break;
+    }
+    printf("reconnecting...\n");
+    sleep(3);
+    retries++;
   }
 
   enc_thread.start();
   rtmp_thread.start();
-
   state = VS_STATE_STARTED;
 
   video_timeout = uv_hrtime() + video_delay;
@@ -216,7 +230,7 @@ bool VideoStreamer::shutdown() {
 bool VideoStreamer::addAudio(AVPacket* pkt) {
 
   if(state != VS_STATE_STARTED) {
-    printf("error: cannot add audio, the VideoStreamer isn't started yet.\n");
+    //printf("error: cannot add audio, the VideoStreamer isn't started yet.\n");
     return false;
   }
 

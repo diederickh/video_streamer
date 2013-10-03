@@ -200,10 +200,10 @@ int main() {
 
   grabber.addSize(0, w >> 2, h >> 2);
   if(!grabber.setup(w, h, 25)) {
-    //  if(!grabber.setup(w, h, streamer.getVideoWidth(), streamer.getVideoHeight(), 25)) {
     printf("error: cannot setup the yuv grabber.\n");
     ::exit(EXIT_FAILURE);
   }
+
   // load settings.
   std::string config_path = rx_get_exe_path() +"decklink_streamer.xml";
   if(!streamer.loadSettings(config_path)) {
@@ -221,6 +221,7 @@ int main() {
     printf("error: could not setup the streamer.\n");
     ::exit(EXIT_FAILURE);
   }
+
   if(!streamer.start()) {
     printf("error: cannot start streamer.\n");
     ::exit(EXIT_FAILURE);
@@ -315,12 +316,12 @@ int main() {
         pkt->u_offset = size.u_offset;
         pkt->v_offset = size.v_offset;
         if(!streamer.addVideo(pkt)) {
-          printf("warning: cannot add a video packet .. probably disconnect...\n");
+          //printf("warning: cannot add a video packet .. probably disconnect...\n");
           pkt->release();
         }
       }
       else {
-        printf("warning: cannot get a free video packet. add more to the pool and make sure that you run this in release mode.\n");
+        //printf("warning: cannot get a free video packet. add more to the pool and make sure that you run this in release mode.\n");
       }
 
 #endif

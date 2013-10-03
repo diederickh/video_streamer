@@ -79,6 +79,8 @@ bool RTMPWriter::initialize() {
 
   if(!RTMP_SetupURL(rtmp, (char*)settings.url.c_str())) {
     printf("error: cannot setup the url for the RTMP Writer.\n");
+    RTMP_Free(rtmp);
+    rtmp = NULL;
     return false;
   }
 
@@ -101,11 +103,13 @@ bool RTMPWriter::initialize() {
     printf("error: cannot connect to the rtmp server: %s\n", settings.url.c_str());
     RTMP_Free(rtmp);
     rtmp = NULL;
-
+    /*
     if(state == RW_STATE_RECONNECTING) {
       state = RW_STATE_NONE;
+      printf("@todo need to call the disconnect callback.\n");
       //reconnect(); 
-    }
+     }
+    */
 
     return false;
   }
@@ -142,11 +146,16 @@ void RTMPWriter::write(uint8_t* data, size_t nbytes) {
     // the caller needs to call reconnect() 
     return;
   }
-
+  
+  //printf("rtmp: %ld\n", nbytes);
   int r = RTMP_Write(rtmp, (const char*)data, (int)nbytes);
   if(r < 0) {
 
     // @todo - we should close and cleanup here!!!!
+    RTMP_Close(rtmp);
+    RTMP_Free(rtmp);
+    rtmp = NULL;
+
     printf("error: something went wrong while trying to write data to the rtmp server.\n");
     if(state == RW_STATE_DISCONNECTED) {
       return;
@@ -170,15 +179,21 @@ void RTMPWriter::reconnect() {
     return;
   }
 
+  close();
+
+  state = RW_STATE_RECONNECTING;
+
+  initialize();
+}
+
+void RTMPWriter::close() {
+
   if(rtmp) {
     RTMP_Close(rtmp);
     RTMP_Free(rtmp);
     rtmp = NULL;
   }
 
-  state = RW_STATE_RECONNECTING;
-
-  initialize();
 }
 
 // @todo - read() is blocking, we would need to handle handle the socket ourself

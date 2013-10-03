@@ -41,6 +41,8 @@ bool TestPattern::setup(int width, int height, int framespersec, int samprate) {
 
   video_delay = (1.0f/framespersec) * 1000 * 1000 * 1000; 
   audio_delay = (audio_samples * (1.0f/samplerate)) * 1000 * 1000 * 1000;
+
+  
   return true;
 }
 
@@ -54,12 +56,22 @@ void TestPattern::update() {
   duration = 0.001 * ((uv_hrtime()/1000000.0f) - time_started);
 }
 
-void TestPattern::generateVideoFrame(std::vector<uint8_t>& result) {
+void TestPattern::generateVideoFrame(std::vector<uint8_t>& result, uint8_t* planes[], uint32_t* strides) {
   int y_bytes = w * h;
   int uv_bytes = w * h / 4;
   if(result.size() < (uv_bytes+y_bytes)) {
     result.assign( y_bytes + uv_bytes + uv_bytes, 0x00 );
   }
+
+  // set planes
+  planes[0] = &result[0];
+  planes[1] = &result[y_bytes]; 
+  planes[2] = &result[y_bytes + uv_bytes];
+
+  // set the strides
+  strides[0] = w;
+  strides[1] = w >> 1;
+  strides[2] = w >> 1;
 
   // Y channel
   int POT = 3;
@@ -80,6 +92,7 @@ void TestPattern::generateVideoFrame(std::vector<uint8_t>& result) {
   }
 
   int offset = y_bytes;
+
   for(int i = 0; i < uv_bytes; ++i) {
     int dx = offset + i;
     result[dx] = t * 0xFF;

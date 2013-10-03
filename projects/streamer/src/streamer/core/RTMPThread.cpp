@@ -6,15 +6,16 @@
 #include <streamer/core/RTMPWriter.h>
 #include <streamer/flv/FLVWriter.h>
 
-
 // ---------------------------------------------------
 
 void rtmp_thread_func(void* user) {
+
   RTMPThread* rtmp_ptr = static_cast<RTMPThread*>(user);
   RTMPThread& rtmp = *rtmp_ptr;
   RTMPWriter& rtmp_writer = rtmp.rtmp_writer;
   std::vector<RTMPData*> todo;
 
+#if 0
   uint32_t time_diff; /* the total millis of packets we have */
   uint32_t time_min = 0;
   uint32_t time_max = 0;
@@ -23,10 +24,12 @@ void rtmp_thread_func(void* user) {
   uint64_t time_started = 0;
   uint64_t time_now = 0;
   uint64_t time_d = 0; 
-  uint64_t packet_time_max = 0;
+
   uint64_t buffer_time = 4500;
   bool buffer_empty = true;
+#endif
 
+  uint64_t packet_time_max = 0;
   uint64_t bytes_written = 0; // just showing some debug info
 
   while(!rtmp.must_stop) {
@@ -41,48 +44,10 @@ void rtmp_thread_func(void* user) {
       rtmp.work.clear();
     }
     uv_mutex_unlock(&rtmp.mutex);
-#if 0
-    for(std::vector<RTMPData*>::iterator it = todo.begin(); it != todo.end(); ++it) {
-      RTMPData* pkt = *it;
-      if(!time_min) {
-        time_min = pkt->timestamp;
-      }
-      if(!time_max) {
-        time_max = pkt->timestamp;
-      }
-      if(pkt->timestamp < time_min) {
-        time_min = pkt->timestamp;
-      }
-      if(pkt->timestamp > time_max){ 
-        time_max = pkt->timestamp;
-      }
-    }
 
-    time_diff = time_max - time_min;
-    if(buffer_empty && time_diff >= buffer_time) {
-      continue;
-    }
-    buffer_empty = false;
-    
-    printf("time min: %d, time max: %d, time_diff: %d\n", time_min, time_max, time_diff);
-    if(!time_started) {
-      time_started = uv_hrtime() / 1000000;
-    }
-#endif
-
-    // for(std::vector<RTMPData*>::iterator it = todo.begin(); it != todo.end(); ++it) {
     std::vector<RTMPData*>::iterator it = todo.begin();
     while(it != todo.end()) {
       RTMPData* pkt = *it;
-
-#if 0      
-      time_d = (uv_hrtime() / 1000000) - time_started;
-      
-      if(pkt->timestamp > time_d) {
-        // time_max = pkt->timestamp;
-        break;
-      }
-#endif
 
 #if defined(USE_GRAPH)
       network_graph["rtmp"] += pkt->data.size();
@@ -107,20 +72,12 @@ void rtmp_thread_func(void* user) {
       delete pkt;
       pkt = NULL;
       it = todo.erase(it);
-
-      //printf("--------------------->>>>> $$$\n");
-      //rtmp_writer.read();
-      //printf("<<<<---------------------- $$$\n");
     }
-
-#if 0
-    printf(".. %lld, done: %lld, time_started: %lld, time_max: %d, buffer_time: %lld, time_diff: %lld \n", packet_time_max, ((packet_time_max - time_d)), time_d, time_max, buffer_time, time_diff);
-    // todo.clear();
-    time_min = time_max; // packet_time_max;
-#endif
 
   }
 
+  rtmp.state = RTMP_STATE_NONE;
+  printf("::::::::::::::::::::::: RTMP STATE RESET ! ::::::::::::::::n\n");
   printf("rtmp bytes written: %lld\n", bytes_written);
   printf("rtmp work: %ld\n", rtmp.work.size());
 }
@@ -132,6 +89,7 @@ RTMPThread::RTMPThread(FLVWriter& flv, RTMPWriter& rtmp)
   ,rtmp_writer(rtmp)
   ,thread(NULL)
   ,must_stop(true)
+  ,state(RTMP_STATE_NONE)
 {
   uv_mutex_init(&mutex);
   uv_cond_init(&cv);
@@ -144,11 +102,6 @@ RTMPThread::~RTMPThread() {
     stop();
   }
 
-  // trigger the thread loop/condvar
-  RTMPData* pkt = new RTMPData();
-  addPacket(pkt);
-
-  uv_thread_join(&thread);
   uv_mutex_destroy(&mutex);
   uv_cond_destroy(&cv);
   must_stop = true;
@@ -156,17 +109,31 @@ RTMPThread::~RTMPThread() {
 
 bool RTMPThread::start() {
 
+  printf(">>>>>> START RTMP THREAD <<<<<\n");
+  if(state == RTMP_STATE_STARTED) {
+    printf("error: canot start the rtmp thread because we're already running.\n");
+    return false;
+  }
+
   if(!must_stop) {
     printf("error: seems like the rtmp thread is already running.\n");
     return false;
   }
 
+  state = RTMP_STATE_STARTED;
+
   must_stop = false;
+
   uv_thread_create(&thread, rtmp_thread_func, this);
   return true;
 }
 
 bool RTMPThread::stop() {
+
+  if(state != RTMP_STATE_STARTED) {
+    printf("error: cannot stop the rtmp state because we're not running.\n");
+    return false;
+  }
 
   if(must_stop) {
     printf("error: seems that we've already stoppped the encoder thread.\n");
@@ -174,11 +141,26 @@ bool RTMPThread::stop() {
   }
 
   must_stop = true;
+
+  // trigger the thread loop/condvar
+  RTMPData* pkt = new RTMPData();
+  addPacket(pkt);
+
+  uv_thread_join(&thread);
+
   return true;
 }
 
 // we take ownership of the packet and we will delete delete it!
 void RTMPThread::addPacket(RTMPData* pkt) {
+
+  /* @todo - we need to handle each packet else the header won't be sent
+  if(state == RTMP_STATE_NONE) {
+    printf("error: we're not handling a packet because we're not started.\n");
+    return;
+  }
+  */
+
   uv_mutex_lock(&mutex);
   {
     work.push_back(pkt);
@@ -194,6 +176,13 @@ void RTMPThread::onSignature(BitStream& bs) {
 }
 
 void RTMPThread::onTag(BitStream& bs, FLVTag& tag) {
+
+  // @todo - we need to handle each packet else the header won't be sent
+  /*
+  if(state == RTMP_STATE_NONE) {
+    printf("error: we're not handling a tag becasue we're not started.\n");
+  }
+  */
 
   RTMPData* pkt = new RTMPData();
   pkt->setTimeStamp(tag.timestamp);

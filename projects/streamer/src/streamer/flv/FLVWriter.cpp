@@ -27,6 +27,11 @@ FLVWriter::FLVWriter(BitStream& bs)
 
 bool FLVWriter::open() {
 
+  if(!hasVideo() && !hasAudio()) {
+    printf("error: it seems you're not using video AND audio for the flv writer which is not allowed.\n");
+    return false;
+  }
+
   if(hasVideo()) {
     if(!validateVideoSettings()) {
       return false;
@@ -48,11 +53,13 @@ bool FLVWriter::open() {
 bool FLVWriter::close() {
 
   if(!bs.size()) {
-    printf("error: nothing writting to flv bitstream.\n");
-    return false;
+#if !defined(NDEBUG)
+    printf("warning: nothing written to flv bitstream.\n");
+#endif
   }
-  
-  rewriteMetaData();
+  else {
+    rewriteMetaData();
+  }
 
   printf("FLVWriter::close() -- %ld\n", bs.size());
 
@@ -230,7 +237,7 @@ void FLVWriter::appendVideoHeader(FLVTag& tag, BitStream& s) {
   s.putBits(tag.codec_id, 4);     // codec identitfier
   
   if(tag.codec_id != FLV_VIDEOCODEC_AVC) {
-      printf("error: cannot write the video header, we only implement the AVC video codec: %d\n", tag.codec_id);
+    printf("error: cannot write the video header, we only implement the AVC video codec, you gave %d, FLV_VIDEOCODEC_AVC = %d\n", tag.codec_id, FLV_VIDEOCODEC_AVC);
       return;
   }
 
@@ -270,7 +277,13 @@ bool FLVWriter::validateAudioSettings() {
 }
 
 bool FLVWriter::validateVideoSettings() {
+
   if(video_codec == FLV_VIDEOCODEC_UNKNOWN) {
+
+    if(audio_codec == FLV_SOUNDFORMAT_UNKNOWN) {
+      printf("error: no video and no audio codec set.\n");
+      return false;
+    }
     return true;
   }
   

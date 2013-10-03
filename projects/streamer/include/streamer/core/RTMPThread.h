@@ -31,12 +31,15 @@ class FLVWriter;
 
 // ---------------------------------------------------
 
+#define RTMP_STATE_NONE 0
+#define RTMP_STATE_STARTED 1
+
 class RTMPThread : public FLVListener {
  public:
   RTMPThread(FLVWriter& flv, RTMPWriter& rtmpWriter);
   ~RTMPThread();
   bool start();
-  bool stop();
+  bool stop(); /* will shutdown the thread and reset state. we join the thread */
   void addPacket(RTMPData* pkt);
 
   /* FLVListener */
@@ -51,6 +54,7 @@ class RTMPThread : public FLVListener {
   uv_cond_t cv;
   uv_mutex_t mutex;
   std::vector<RTMPData*> work;
+  int state;
 };
 
 // ---------------------------------------------------

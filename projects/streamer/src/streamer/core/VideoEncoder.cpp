@@ -18,7 +18,6 @@ VideoEncoder::VideoEncoder()
 
 VideoEncoder::~VideoEncoder() {
 
-
   shutdown();
 
   printf("error: need to x264_encoder_close etc. \n");
@@ -108,7 +107,7 @@ bool VideoEncoder::initializeX264() {
   p->rc.i_qp_constant = 25;
 #elif USE_BITRATE_QUALITY
   p->rc.i_rc_method = X264_RC_ABR;
-  p->rc.i_bitrate = 400;
+  p->rc.i_bitrate = 60;
 #endif
 
 #if 0
@@ -181,7 +180,8 @@ bool VideoEncoder::encodePacket(AVPacket* p, FLVTag& tag) {
 
   size_t nbytes_y = settings.width * settings.height;
   size_t nbytes_uv = nbytes_y / 4;
-  
+
+  /*
   pic_in.img.plane[0] = &p->data[p->y_offset];
 
   if(p->u_offset) {
@@ -197,6 +197,11 @@ bool VideoEncoder::encodePacket(AVPacket* p, FLVTag& tag) {
   else {
     pic_in.img.plane[2] = &p->data[nbytes_y + nbytes_uv];
   }
+  */
+
+  pic_in.img.plane[0] = p->planes[0];
+  pic_in.img.plane[1] = p->planes[1];
+  pic_in.img.plane[2] = p->planes[2];
 
   pic_in.i_pts = frame_num; // p->timestamp; // frame_num;
   frame_num++;
@@ -359,7 +364,8 @@ bool VideoEncoder::shutdown() {
   encoder = NULL;
 
   frame_num = 0;
-  printf("x264: %p\n", encoder);
+
+  encoder = NULL;
 
   return true;
 }

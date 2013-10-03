@@ -11,7 +11,7 @@
   ./avconv -f rawvideo  -s 320x240 -i raw.yuv -r 10 -vcodec h264 out.mov
   ````
 
-  Simple usage: 
+  Simple usage (@todo - this needs to be updated slightly) : 
   ````c++
   #include <streamer/core/TestPattern.h>
 
@@ -58,6 +58,7 @@ extern "C" {
 #include <stdint.h>
 #include <vector>
 #include <fstream>
+#include <streamer/core/EncoderTypes.h>
 
 class TestPattern {
 
@@ -68,15 +69,18 @@ class TestPattern {
   bool setup(int width, int height, int fps, int samplerate);
 
   void start();  /* start the generator; sets the delays + timeouts */
+
   bool hasVideoFrame(); /* returns true when you should call generateVideoFrame() */
   bool hasAudioFrame(); /* returns true when you should call generateAudioFrame() */ 
 
   void update();
-  void generateVideoFrame(std::vector<uint8_t>& result);
+  void generateVideoFrame(std::vector<uint8_t>& result, uint8_t* planes[], uint32_t* strides);
   uint32_t generateAudioFrame(std::vector<uint8_t>& result);  // generates a stereo audio signal
 
   bool openFile(std::string file);
   bool writeFrameToFile(std::vector<uint8_t>& result);
+  
+  uint32_t getTimeStamp();
 
  public:
   int w;
@@ -100,6 +104,10 @@ class TestPattern {
   uint64_t time_started; /* time in millis when we started */
   uint32_t timestamp;
 };
+
+inline uint32_t TestPattern::getTimeStamp() {
+  return timestamp;
+}
 
 inline bool TestPattern::hasVideoFrame() {
   bool wants = video_timeout && uv_hrtime() >= video_timeout;

@@ -47,12 +47,24 @@ struct AVPacket {
   std::vector<uint8_t> data;     /* the actual RAW video or audio data that will be encoded */
   //uint8_t* data;
 
+  uint8_t* planes[3];              
+  uint32_t strides[3]; 
+
   uint32_t y_offset;             /* video packet: offset into the `data` member where the y-plane starts, if not set we don't use it */
   uint32_t u_offset;             /* video packet: offset into the `data` member where the u-plane starts, if not set we dont' use it */
   uint32_t v_offset;             /* video packet: offset into the `data` member where the v-plane starts, if not set we dont' use it */
 
   MemoryPool* memory_pool;       /* the memory pool to which this packet belongs */
   uint32_t refcount;             /* when addRef() is called this gets incremented, release() decrements it  (through memory pool) */
+};
+
+// -----------------------------------------
+
+struct Picture {                  /* represents a generic image that's is e.g. used by the TestPattern generator */
+  Picture();
+  void print();                   /* just print some info */
+  uint8_t* planes[3];
+  uint32_t strides[3];            /* strides for y, u and v planes */
 };
 
 // -----------------------------------------

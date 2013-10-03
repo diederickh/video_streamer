@@ -4,6 +4,19 @@
 
 // -----------------------------------------
 
+Picture::Picture() {
+  planes[0] = planes[1] = planes[2] = NULL;
+  strides[0] = strides[1] = strides[2] = 0;
+}
+
+void Picture::print() {
+  printf("pic.strides[0] = %d\n", strides[0]);
+  printf("pic.strides[1] = %d\n", strides[1]);
+  printf("pic.strides[2] = %d\n", strides[2]);
+}
+
+// -----------------------------------------
+
 AVPacket::AVPacket(MemoryPool* mp) 
   :type(AV_TYPE_UNKNOWN)
   ,timestamp(0)

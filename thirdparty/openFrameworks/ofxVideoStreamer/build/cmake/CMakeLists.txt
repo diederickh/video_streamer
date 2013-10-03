@@ -29,6 +29,24 @@ install(DIRECTORY ${hwscale_include_dirs} DESTINATION include/)
 
 install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../include/ DESTINATION include)
 
+# extern files
+set(extern_dirs
+  ${extern_dir}/include/lame
+  ${extern_dir}/include/librtmp
+  ${extern_dir}/include/nanomsg
+  ${extern_dir}/include/openssl
+)
+
+file(GLOB extern_header_files ${extern_dir}/include/*.h )
+
+file(GLOB extern_hpp_files ${extern_dir}/include/*.hpp)
+
+install(DIRECTORY ${extern_dirs} DESTINATION include)
+
+install(FILES ${extern_hpp_files} DESTINATION include)
+
+install(FILES ${extern_header_files} DESTINATION include)
+
 # install streamer libraries
 foreach(lib ${streamer_libraries})
   if(NOT IS_DIRECTORY ${lib})

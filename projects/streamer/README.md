@@ -111,6 +111,17 @@ FMS URL: rtmp://localhost/flvplayback
 Stream: livestream
 ````
 
+## Initialize and shutdown process of a FLV bitstream
+
+The _applications/test_shutdown_flvwriter_ code contains an example that shows how 
+you should initialize/open and shutdown/close a FLV bitstream using the video encoder.
+The code is organized in three phases. 
+
+ 1. Setup
+ 2. Initialize
+ 3. Shutdown 
+
+Phase 2 and 3 can be repeated after setting up all objects. 
 
 ## How to debug your FLV streams
 

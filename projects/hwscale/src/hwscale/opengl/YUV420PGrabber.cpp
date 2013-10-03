@@ -330,6 +330,8 @@ bool YUV420PGrabber::setupFBO() {
   assert(yuv_tex);
   assert(tex_w && tex_h);
 
+  printf("glGenFramebufers in YUV420PGrabber: %p\n", glGenFramebuffers);
+
   glGenFramebuffers(1, &scene_fbo);
   glBindFramebuffer(GL_FRAMEBUFFER, scene_fbo);
   
@@ -633,12 +635,16 @@ void YUV420PGrabber::downloadTextures() {
 
 // @todo - this makes the screen flicker!
 void YUV420PGrabber::draw() {
+
   assert(win_w);
   assert(win_h);
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
   glDrawBuffer(GL_BACK);
-  glDisable(GL_DEPTH_TEST);  
+  glDisable(GL_DEPTH_TEST);
+  //glReadBuffer(GL_COLOR_ATTACHMENT0);
+  //glBlitFramebuffer(0, 0, win_w, win_h, 0, 0, win_w, win_h, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+	
   glViewport(0, 0, win_w, win_h);
   // printf("win: %d x %d\n", win_w, win_h);
 
@@ -648,10 +654,11 @@ void YUV420PGrabber::draw() {
   glBindTexture(GL_TEXTURE_2D, scene_tex);
 
   glUseProgram(prog_pt);
-
+ 
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
   unbindVAO();
+  glUseProgram(0);
 }
 
 bool YUV420PGrabber::setOutput(int id, std::string filepath) {

@@ -1,3 +1,11 @@
+/*
+  # FLVWriter
+
+  The FLVWriter is a bare class which only knows about stuff found in the 
+  FLV directory so it might be used in any other project. Do not couple this 
+  class with other classes outside the `flv` directory.
+
+ */
 #ifndef ROXLU_FLV_WRITER_H
 #define ROXLU_FLV_WRITER_H
 
