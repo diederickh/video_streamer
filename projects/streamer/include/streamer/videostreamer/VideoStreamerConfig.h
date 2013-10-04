@@ -28,6 +28,11 @@
 
 <?xml version="1.0" encoding="UTF-8"?>
 <videostreamer>
+
+  <settings>
+    <default_stream_id>0</default_stream_id>
+  </settings>
+
   <streams>
     <stream>
       <id>0</id>

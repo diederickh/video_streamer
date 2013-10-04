@@ -15,25 +15,12 @@ void rtmp_thread_func(void* user) {
   RTMPWriter& rtmp_writer = rtmp.rtmp_writer;
   std::vector<RTMPData*> todo;
 
-#if 0
-  uint32_t time_diff; /* the total millis of packets we have */
-  uint32_t time_min = 0;
-  uint32_t time_max = 0;
-  uint64_t timeout = 0;
-  uint64_t delay_us = 2 * 10 * 1000;
-  uint64_t time_started = 0;
-  uint64_t time_now = 0;
-  uint64_t time_d = 0; 
-
-  uint64_t buffer_time = 4500;
-  bool buffer_empty = true;
-#endif
-
   uint64_t packet_time_max = 0;
   uint64_t bytes_written = 0; // just showing some debug info
+  bool must_stop = false;
 
-  while(!rtmp.must_stop) {
-
+  while(!must_stop) {
+    printf("runnin..\n");
     // get work to process
     uv_mutex_lock(&rtmp.mutex);
     {
@@ -49,6 +36,14 @@ void rtmp_thread_func(void* user) {
     while(it != todo.end()) {
       RTMPData* pkt = *it;
 
+      // make sure we stop when we get a stop packet
+      if(pkt->type == RTMP_DATA_TYPE_STOP) {
+        printf("Received a stop packet. ----------------------------------- .\n");
+        must_stop = true;
+        break;
+      }
+
+      printf("pkt: %d\n", pkt->type);
 #if defined(USE_GRAPH)
       network_graph["rtmp"] += pkt->data.size();
 #endif
@@ -73,11 +68,10 @@ void rtmp_thread_func(void* user) {
       pkt = NULL;
       it = todo.erase(it);
     }
-
   }
 
   rtmp.state = RTMP_STATE_NONE;
-  printf("::::::::::::::::::::::: RTMP STATE RESET ! ::::::::::::::::n\n");
+  printf("::::::::::::::::::::::: RTMP STATE RESET ! ::::::::::::::::\n");
   printf("rtmp bytes written: %lld\n", bytes_written);
   printf("rtmp work: %ld\n", rtmp.work.size());
 }
@@ -122,7 +116,9 @@ bool RTMPThread::start() {
 
   state = RTMP_STATE_STARTED;
 
-  must_stop = false;
+  uv_mutex_lock(&mutex);
+    must_stop = false;
+  uv_mutex_unlock(&mutex);
 
   uv_thread_create(&thread, rtmp_thread_func, this);
   return true;
@@ -135,25 +131,43 @@ bool RTMPThread::stop() {
     return false;
   }
 
-  if(must_stop) {
+  uv_mutex_lock(&mutex);
+    bool ms = must_stop;
+  uv_mutex_unlock(&mutex);
+
+  if(ms) {
     printf("error: seems that we've already stoppped the encoder thread.\n");
     return false;
   }
 
-  must_stop = true;
+  uv_mutex_lock(&mutex);
+    must_stop = true;
+  uv_mutex_unlock(&mutex);
 
   // trigger the thread loop/condvar
   RTMPData* pkt = new RTMPData();
+  pkt->type = RTMP_DATA_TYPE_STOP;
   addPacket(pkt);
 
-  uv_thread_join(&thread);
+  printf("STOPPED!!\n");
+
+  //uv_thread_join(&thread);
+  printf("JOINED!!!\n");
 
   return true;
 }
 
 // we take ownership of the packet and we will delete delete it!
 void RTMPThread::addPacket(RTMPData* pkt) {
-
+  assert(pkt);
+  
+#if !defined(NDEBUG)
+  if(pkt->type == RTMP_DATA_TYPE_NONE) {
+    printf("error: the RTMPData packet has an invalid type (RTMP_DATA_TYPE_NONE) (RTMPThread)");
+    ::exit(EXIT_FAILURE);
+  }
+#endif
+  
   /* @todo - we need to handle each packet else the header won't be sent
   if(state == RTMP_STATE_NONE) {
     printf("error: we're not handling a packet because we're not started.\n");
@@ -185,6 +199,7 @@ void RTMPThread::onTag(BitStream& bs, FLVTag& tag) {
   */
 
   RTMPData* pkt = new RTMPData();
+  pkt->type = RTMP_DATA_TYPE_AV;
   pkt->setTimeStamp(tag.timestamp);
   pkt->putBytes(bs.getPtr(), bs.size());
   addPacket(pkt);

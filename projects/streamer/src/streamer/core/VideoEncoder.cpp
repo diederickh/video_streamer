@@ -11,9 +11,11 @@ VideoEncoder::VideoEncoder()
   ,vflip(true)
   ,frame_num(0)
 {
+  /*
   strides[0] = 0;
   strides[1] = 0;
   strides[2] = 0;
+  */
 }
 
 VideoEncoder::~VideoEncoder() {
@@ -31,6 +33,7 @@ bool VideoEncoder::setup(VideoSettings s) {
 
   settings = s;
 
+  /*
   if(!strides[0]) {
     strides[0] = settings.width;
   }
@@ -42,6 +45,7 @@ bool VideoEncoder::setup(VideoSettings s) {
   if(!strides[2]) {
     strides[2] = settings.width >> 1;
   }
+  */
 
   return true;
 }
@@ -107,7 +111,7 @@ bool VideoEncoder::initializeX264() {
   p->rc.i_qp_constant = 25;
 #elif USE_BITRATE_QUALITY
   p->rc.i_rc_method = X264_RC_ABR;
-  p->rc.i_bitrate = 60;
+  p->rc.i_bitrate = 360;
 #endif
 
 #if 0
@@ -140,11 +144,10 @@ bool VideoEncoder::initializeX264() {
 }
 
 bool VideoEncoder::initializePic() {
-  assert(strides[0] && strides[1] && strides[2]); /* setup() must have been called */
   unsigned int csp = (vflip) ? X264_CSP_I420 | X264_CSP_VFLIP : X264_CSP_I420;
   //printf("ve.width : %d\n", settings.width);
   //printf("ve.height: %d\n", settings.height);
-  printf("strides: %d, %d, %d\n", strides[0], strides[1], strides[2]);
+  //printf("strides: %d, %d, %d\n", strides[0], strides[1], strides[2]);
 
 #if 0 
   int r = x264_picture_alloc(&pic_out, csp, settings.width, settings.height);
@@ -156,22 +159,9 @@ bool VideoEncoder::initializePic() {
 
   x264_picture_init(&pic_in);
   pic_in.img.i_csp = csp;
-  pic_in.img.i_stride[0] = strides[0];
-  pic_in.img.i_stride[1] = strides[1];
-  pic_in.img.i_stride[2] = strides[2];
   pic_in.img.i_plane = 3;
 
   return true;
-}
-
-
-void VideoEncoder::setStrides(uint32_t strideY, uint32_t strideU, uint32_t strideV) {
-  //printf("USING STRIDES: %d, %d, %d\n", strideY, strideU, strideV);
-
-  // @todo - make sure that initializePic hasn't been called
-  strides[0] = strideY;
-  strides[1] = strideU;
-  strides[2] = strideV;
 }
 
 bool VideoEncoder::encodePacket(AVPacket* p, FLVTag& tag) {
@@ -181,29 +171,16 @@ bool VideoEncoder::encodePacket(AVPacket* p, FLVTag& tag) {
   size_t nbytes_y = settings.width * settings.height;
   size_t nbytes_uv = nbytes_y / 4;
 
-  /*
-  pic_in.img.plane[0] = &p->data[p->y_offset];
-
-  if(p->u_offset) {
-    pic_in.img.plane[1] = &p->data[p->u_offset];
-  }
-  else {
-    pic_in.img.plane[1] = &p->data[nbytes_y];
-  }
-
-  if(p->v_offset) {
-    pic_in.img.plane[2] = &p->data[p->v_offset];    
-  }
-  else {
-    pic_in.img.plane[2] = &p->data[nbytes_y + nbytes_uv];
-  }
-  */
+  pic_in.img.i_stride[0] = p->strides[0];
+  pic_in.img.i_stride[1] = p->strides[1];
+  pic_in.img.i_stride[2] = p->strides[2];
 
   pic_in.img.plane[0] = p->planes[0];
   pic_in.img.plane[1] = p->planes[1];
   pic_in.img.plane[2] = p->planes[2];
 
-  pic_in.i_pts = frame_num; // p->timestamp; // frame_num;
+  pic_in.i_pts = frame_num; 
+
   frame_num++;
 
   x264_nal_t* nal = NULL;

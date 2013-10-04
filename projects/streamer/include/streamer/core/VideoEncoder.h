@@ -45,7 +45,7 @@ class VideoEncoder {
   VideoEncoder();
   ~VideoEncoder();
 
-  void setStrides(uint32_t strideY, uint32_t strideU, uint32_t strideV); /* (call before setup() to override defaults) set the stride of the input image planes */
+  //  void setStrides(uint32_t strideY, uint32_t strideU, uint32_t strideV); /* (call before setup() to override defaults) set the stride of the input image planes */
 
   bool setup(VideoSettings settings); /* set state that is used in initialize() */
   bool initialize(); /* initialize all members, first set all state (e.g. call setup()) */
@@ -70,7 +70,7 @@ class VideoEncoder {
   VideoSettings settings;
   bool vflip; /* flip video, defaults to true */
   uint32_t frame_num;
-  uint32_t strides[3]; /* make sure to call setStrides(..) before you call setup() else we fall back to our defaults. Strides of the input image, when not set we assumes that the input is using 3 separate buffers and using I420P */
+  //  uint32_t strides[3]; /* make sure to call setStrides(..) before you call setup() else we fall back to our defaults. Strides of the input image, when not set we assumes that the input is using 3 separate buffers and using I420P */
   std::ofstream ofs; /* only used when writing to a file */
 };
 

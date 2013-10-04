@@ -4,55 +4,33 @@
 
 // -----------------------------------------
 
-Picture::Picture() {
+AVPacket::AVPacket(MemoryPool* mp) 
+  :type(AV_TYPE_UNKNOWN)
+  ,timestamp(0)
+  ,memory_pool(mp)
+{
   planes[0] = planes[1] = planes[2] = NULL;
   strides[0] = strides[1] = strides[2] = 0;
 }
 
-void Picture::print() {
-  printf("pic.strides[0] = %d\n", strides[0]);
-  printf("pic.strides[1] = %d\n", strides[1]);
-  printf("pic.strides[2] = %d\n", strides[2]);
-}
-
-// -----------------------------------------
-
-AVPacket::AVPacket(MemoryPool* mp) 
-  :type(AV_TYPE_UNKNOWN)
-  ,timestamp(0)
-  ,y_offset(0)
-  ,u_offset(0)
-  ,v_offset(0)
-  ,memory_pool(mp)
-   //  ,data(NULL)
-{
+void AVPacket::print() {
+  printf("AVPacket.strides[0]: %d\n", strides[0]);
+  printf("AVPacket.strides[1]: %d\n", strides[1]);
+  printf("AVPacket.strides[2]: %d\n", strides[2]);
 }
 
 AVPacket::~AVPacket() {
 
   printf("AVPacket::~AVPacket()\n");
 
-#if 0
-  if(data) {
-    delete[] data;
-  }
-  data = NULL;
-#endif
-
+  type = AV_TYPE_UNKNOWN;
+  timestamp = 0;
+  planes[0] = planes[1] = planes[2] = NULL;
+  strides[0] = strides[1] = strides[2] = 0;
 }
 
 void AVPacket::allocate(size_t nbytes) {
-
-#if 0
-  if(data) {
-    printf("error: trying to re-allocate - not supported.\n");
-    ::exit(EXIT_FAILURE);
-  }
-  data = new uint8_t[nbytes];
-#endif
-
   data.assign(nbytes, 0x00);
-
 }
 
 void AVPacket::addRef() {
@@ -60,8 +38,8 @@ void AVPacket::addRef() {
   if(!memory_pool) {
     printf("warning: trying to refcount an AVPacket which does not have a memory pool! - maybe a stop packet?\n");
     return;
- 
- }
+  }
+
   memory_pool->addRef(this);
 }
 

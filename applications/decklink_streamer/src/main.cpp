@@ -84,7 +84,7 @@ void error_callback(int err, const char* desc);
 void resize_callback(GLFWwindow* window, int width, int height);
 void frame_callback(IDeckLinkVideoInputFrame* vframe, IDeckLinkAudioInputPacket* aframe, void* user);
 
-#define INPUT_MODE 1 
+#define INPUT_MODE 0 
 #if INPUT_MODE == 0
 #  define INPUT_WIDTH 1920
 #  define INPUT_HEIGHT 1080
@@ -212,7 +212,6 @@ int main() {
   }
 
   YUV420PSize size = grabber.getSize(0);
-  streamer.setStrides(size.strides[0], size.strides[1], size.strides[2]);
   streamer.setVideoWidth(size.yw);
   streamer.setVideoHeight(size.yh);
   printf("video output: %d x %d\n", size.yw, size.yh);
@@ -242,7 +241,6 @@ int main() {
   uint8_t* dest_y = yuv420p;
   uint8_t* dest_u = &yuv420p[offset_u];
   uint8_t* dest_v = &yuv420p[offset_v];
-  printf("offset_u: %d, offset_v: %d\n", offset_u, offset_v);
 
   glGenVertexArrays(1, &vao);
   glBindVertexArray(vao);
@@ -266,8 +264,9 @@ int main() {
   while(!glfwWindowShouldClose(win)) {
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    //glGetIntegerv(GL_READ_BUFFER, &buf);
-    //printf("BUF: %d, GL_BACK_LEFT: %d, GL_BACK_RIGHT: %d, GL_FRONT: %d, GL_BACK: %d\n", buf, GL_BACK_LEFT, GL_BACK_RIGHT, GL_FRONT, GL_BACK);
+
+    streamer.update();
+
     uv_mutex_lock(&frame_mutex);
     {
       if(new_frame) {
@@ -276,8 +275,6 @@ int main() {
       }
     }
     uv_mutex_unlock(&frame_mutex);
-
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     if(grabber.hasNewFrame()) {
 
@@ -301,7 +298,6 @@ int main() {
 
       grabber.downloadTextures();
 
-#if 1
       uint32_t timestamp = streamer.getTimeStamp();
       uint32_t timediff = timestamp - start_time;
 
@@ -309,42 +305,18 @@ int main() {
       if(pkt) {
         pkt->setTimeStamp(grabber.getTimeStamp());
         pkt->makeVideoPacket();
-        pkt->data.assign(grabber.getPtr(), grabber.getPtr() + grabber.getNumBytes());
+        grabber.assignFrame(0, pkt->data, pkt->planes, pkt->strides);
 
-        YUV420PSize size = grabber.getSize(0);
-        pkt->y_offset = size.y_offset;
-        pkt->u_offset = size.u_offset;
-        pkt->v_offset = size.v_offset;
         if(!streamer.addVideo(pkt)) {
-          //printf("warning: cannot add a video packet .. probably disconnect...\n");
           pkt->release();
         }
       }
       else {
         //printf("warning: cannot get a free video packet. add more to the pool and make sure that you run this in release mode.\n");
       }
-
-#endif
-      //      grabber.draw();
     }
+
     grabber.draw();
-    //else
-#if 0
-    glBindVertexArray(vao);
-    glUseProgram(prog);
-
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, fast_upload.tex_y);
-
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, fast_upload.tex_u);
-
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, fast_upload.tex_v);
-
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-#endif
-    //    }
 
     glfwSwapBuffers(win);
     glfwPollEvents();

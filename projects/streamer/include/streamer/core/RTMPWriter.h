@@ -23,6 +23,10 @@ typedef void(*rtmp_callback)(RTMPWriter* writer, void* user);  // e.g. used for 
 
 // ---------------------------------------------------
 
+#define RTMP_DATA_TYPE_NONE 0  /* unset */
+#define RTMP_DATA_TYPE_AV 1    /* audio/video data */
+#define RTMP_DATA_TYPE_STOP 2  /* stop packet */
+
 struct RTMPData {               /* represents the data of a FLVTag which contains either video, audio or script data */
   RTMPData();
   void putBytes(uint8_t* ptr, size_t nbytes);
@@ -30,6 +34,7 @@ struct RTMPData {               /* represents the data of a FLVTag which contain
 
   std::vector<uint8_t> data;
   uint32_t timestamp;
+  uint8_t type;
 };
 
 // ---------------------------------------------------

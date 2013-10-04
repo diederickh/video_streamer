@@ -19,7 +19,6 @@ extern "C" {
 #  include <uv.h>  
 }
 
-
 #if defined(__APPLE__)
 #  if !defined(GL_TRUE)
 #    include <OpenGL/gl3.h>
@@ -231,12 +230,13 @@ class YUV420PGrabber {
   void start(); /* start capturing; sets the frame timeout */
   bool hasNewFrame();
   void downloadTextures(); /* downloads the YUV420p into the planes you can get with getPlanes(), when setOutput() has been called it will write the data to a raw yuv 420p file*/
+
+  /* getting the frame data */
+  void assignFrame(size_t id, std::vector<uint8_t>& pixels, uint8_t* planes[], uint32_t* strides); /* moves over the current frame into the given vector and sets the plane pointers + strides. pixels MUST be big enough to handle the data! */
+  void assignPlanes(size_t id, std::vector<uint8_t>& pixels, uint8_t* planes[]); /* this function will assign the plane pointers into the given planes array. The pointers will point to the data in the given vector and for the given size ID. This is used to set the planes member of a AVPacket */
+  void assignStrides(size_t id, uint32_t* strides); /* this function will assign the strides for the given size, this is used to setup the  strides member of the AVPacket.*/
   unsigned char* getPtr(); /* get ptr to the image data */
-  /*
-  unsigned char* getPlaneY();
-  unsigned char* getPlaneU();
-  unsigned char* getPlaneV();
-  */
+
   int getWidth(); /* returns video output width, same as y_plane dimensions*/
   int getHeight();  /* returns video output height, same as y_plane dimensions */
   int getWidthUV(); /* returns the width for the u and v planes */
@@ -302,11 +302,6 @@ class YUV420PGrabber {
   int pbo_read_dx;
 
   unsigned char* image;
-  /*
-  unsigned char* y_plane;
-  unsigned char* u_plane;
-  unsigned char* v_plane;
-  */
   
   /* framerate management */
   int64_t frame_timeout; /* when we should grab a new frame */
@@ -381,20 +376,6 @@ inline void YUV420PGrabber::deleteProgram(GLuint& p) {
   }
 }
 
-/*
-inline unsigned char* YUV420PGrabber::getPlaneY() {
-  return y_plane;
-}
-
-inline unsigned char* YUV420PGrabber::getPlaneU() {
-  return u_plane;
-}
-
-inline unsigned char* YUV420PGrabber::getPlaneV() {
-  return v_plane;
-}
-*/
-
 inline int YUV420PGrabber::getWidth() {
   return vid_w;
 }
@@ -429,7 +410,7 @@ inline uint32_t YUV420PGrabber::getTimeStamp() {
 }
 
 inline size_t YUV420PGrabber::getNumBytes() {
-  return tex_w * tex_h; //vid_w * vid_h + (uv_w * uv_h * 2);
+  return tex_w * tex_h; 
 }
 
 inline GLuint YUV420PGrabber::getFBO() {

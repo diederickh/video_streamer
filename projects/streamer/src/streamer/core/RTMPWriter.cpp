@@ -12,6 +12,7 @@ void rtmp_sigpipe_handler(int signum) {
 
 RTMPData::RTMPData()
   :timestamp(0)
+  ,type(RTMP_DATA_TYPE_NONE)
 {
 }
 

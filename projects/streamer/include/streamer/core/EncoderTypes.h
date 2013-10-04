@@ -32,6 +32,7 @@ class MemoryPool;
 struct AVPacket {
   AVPacket(MemoryPool* mp);     /* An AVPacket can be part of a MemoryPool, which is used to preallocate frames and reuse frames that are not used anymore but this is not necessary, pass NULL when you don't want ot use  a memory pool */
   ~AVPacket();                  /* cleans up ;-) */
+  void print();                 /* print some debug info */
   void makeVideoPacket();
   void makeAudioPacket();
   void setTimeStamp(uint32_t ts);
@@ -50,23 +51,25 @@ struct AVPacket {
   uint8_t* planes[3];              
   uint32_t strides[3]; 
 
+#if 0  
   uint32_t y_offset;             /* video packet: offset into the `data` member where the y-plane starts, if not set we don't use it */
   uint32_t u_offset;             /* video packet: offset into the `data` member where the u-plane starts, if not set we dont' use it */
   uint32_t v_offset;             /* video packet: offset into the `data` member where the v-plane starts, if not set we dont' use it */
+#endif 
 
   MemoryPool* memory_pool;       /* the memory pool to which this packet belongs */
   uint32_t refcount;             /* when addRef() is called this gets incremented, release() decrements it  (through memory pool) */
 };
 
 // -----------------------------------------
-
+#if 0
 struct Picture {                  /* represents a generic image that's is e.g. used by the TestPattern generator */
   Picture();
   void print();                   /* just print some info */
   uint8_t* planes[3];
   uint32_t strides[3];            /* strides for y, u and v planes */
 };
-
+#endif
 // -----------------------------------------
 
 struct VideoSettings {

@@ -70,11 +70,6 @@ YUV420PGrabber::YUV420PGrabber()
   ,prog_pt(0)
   ,frag_pt(0)
   ,image(NULL)
-   /*
-  ,y_plane(NULL)
-  ,u_plane(NULL)
-  ,v_plane(NULL)
-   */
   ,frame_timeout(0)
   ,frame_prev_timeout(0)
   ,frame_delay(0)
@@ -146,18 +141,12 @@ YUV420PGrabber::~YUV420PGrabber() {
   tex_w = 0;
   tex_h = 0;
   image = NULL;
-  /*
-  y_plane = NULL;
-  u_plane = NULL;
-  v_plane = NULL;
-  */
   frame_timeout = 0;
   frame_prev_timeout = 0;
   frame_delay = 0;
   frame_delay_adjusted = 0;
   frame_diff = 0;
   frame_diff_avg = 0;
-  
 }
 
 bool YUV420PGrabber::setup(int winW, int winH, int framerate) {
@@ -225,12 +214,6 @@ bool YUV420PGrabber::setup(int winW, int winH, int framerate) {
     s.planes[2] = &image[s.v_offset];
   }
 
-  /*
-  y_plane = image;
-  u_plane = image + (vid_w * vid_h);
-  v_plane = u_plane + (uv_w * uv_h);
-  */
-
   frame_delay = (1.0/fps) * 1000 * 1000 * 1000;
 
   return true;
@@ -272,7 +255,7 @@ bool YUV420PGrabber::setupSizes() {
   tex_h = max_h;
 
   // determine the viewports into which this part must be drawn.
-  printf("tex_h: %d, tex_w: %d\n", tex_h, tex_w);
+  printf("YUV420PGrabber: tex_h: %d, tex_w: %d\n", tex_h, tex_w);
 
   std::sort(sizes.begin(), sizes.end(), YUV420PSize());
   int offset_y = 0;
@@ -298,6 +281,7 @@ bool YUV420PGrabber::setupSizes() {
      s.u_offset = ( line_y * tex_w ) + s.u_viewport_x ; 
      s.v_offset = ( s.v_viewport_y  * tex_w ) + s.v_viewport_x ;
 #endif
+
      s.y_stride = s.strides[0] = tex_w;
      s.u_stride = s.strides[1] = tex_w;
      s.v_stride = s.strides[2] = tex_w;
@@ -411,14 +395,6 @@ bool YUV420PGrabber::setupShaders() {
   glCompileShader(vert_yuv);
   printShaderCompileInfo(vert_yuv);
 
-  // Y-shader
-  /*
-  vert_y = glCreateShader(GL_VERTEX_SHADER);
-  glShaderSource(vert_y, 1, &YUV420P_Y_VS, NULL);
-  glCompileShader(vert_y);
-  printShaderCompileInfo(vert_y);
-  */
-
   frag_y = glCreateShader(GL_FRAGMENT_SHADER);
   glShaderSource(frag_y, 1, &YUV420P_Y_FS, NULL);
   glCompileShader(frag_y);
@@ -485,8 +461,6 @@ bool YUV420PGrabber::setupShaders() {
   glUseProgram(prog_v);
   glUniform1i(u_tex, 0);
 
-  // +++++++++++++++++++++++++++++++++++++++++++++++++++++
-  
   // Pass through shader
   frag_pt = glCreateShader(GL_FRAGMENT_SHADER);
   glShaderSource(frag_pt, 1, &YUV420P_PT_FS, NULL);
@@ -580,12 +554,10 @@ void YUV420PGrabber::downloadTextures() {
   glReadBuffer(GL_COLOR_ATTACHMENT1);
   glReadPixels(0, 0, tex_w, tex_h, GL_RED, GL_UNSIGNED_BYTE, image);
   glBindFramebuffer(GL_FRAMEBUFFER,0);
-  //  printf("FIRST: %02X\n", image[0]);
 
  if(outfile_set) {
 
    YUV420PSize s = getSize(outfile_size_id);
-   //printf("writing first plane: %02X\n", *s.planes[0]);
 
    // y-plane
    for(size_t j = 0; j < s.yh; ++j) {
@@ -604,34 +576,44 @@ void YUV420PGrabber::downloadTextures() {
      size_t dx = j * s.strides[2];
      ofs.write((char*)s.planes[2] + dx, s.uvw); // one line
    }
-   
  }
-  
-/*
-  glBindTexture(GL_TEXTURE_2D, 0);
-  glBindFramebuffer(GL_READ_FRAMEBUFFER, scene_fbo);
 
-  glReadBuffer(GL_COLOR_ATTACHMENT3);
-  glReadPixels(0, 0, uv_w, uv_h, GL_RED, GL_UNSIGNED_BYTE, v_plane);
-
-  glReadBuffer(GL_COLOR_ATTACHMENT2);
-  glReadPixels(0, 0, uv_w, uv_h, GL_RED, GL_UNSIGNED_BYTE, u_plane);
-
-  glReadBuffer(GL_COLOR_ATTACHMENT1);
-  glReadPixels(0, 0, vid_w, vid_h, GL_RED, GL_UNSIGNED_BYTE, y_plane);
-  
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-  glReadBuffer(GL_BACK);
-  glDrawBuffer(GL_BACK);
-*/
 }
 
-  // IMPORTANT: on mac 10.8, the order of download is important, it needs 
-  // to start downloading the GL_COLOR_ATTACHMENT3 first, then 2, then 1.
-  // seems like a driver bug (!?)
-  
+// moves over the data into pixels, sets teh plane pointers into this pixels vector and sets the strides for the planes
+void YUV420PGrabber::assignFrame(size_t id, 
+                                 std::vector<uint8_t>& pixels, 
+                                 uint8_t* planes[], 
+                                 uint32_t* strides)
+{
 
+  pixels.assign(getPtr(), getPtr() + getNumBytes());
+
+  YUV420PSize size = getSize(id);
+  planes[0] = &pixels[size.y_offset];
+  planes[1] = &pixels[size.u_offset];
+  planes[2] = &pixels[size.v_offset];
+
+  strides[0] = size.y_stride;
+  strides[1] = size.u_stride;
+  strides[2] = size.v_stride;
+}
+
+// planes should be big enough to hold 3 planes 
+void YUV420PGrabber::assignPlanes(size_t id, std::vector<uint8_t>& pixels, uint8_t* planes[]) {
+  YUV420PSize size = getSize(id);
+  planes[0] = &pixels[size.y_offset];
+  planes[1] = &pixels[size.u_offset];
+  planes[2] = &pixels[size.v_offset];
+}
+
+// strides should be big enough to hold 3 strides (y, u, v, planes)
+void YUV420PGrabber::assignStrides(size_t id, uint32_t* strides) {
+  YUV420PSize size = getSize(id);
+  strides[0] = size.y_stride;
+  strides[1] = size.u_stride;
+  strides[2] = size.v_stride;
+}
 
 // @todo - this makes the screen flicker!
 void YUV420PGrabber::draw() {
