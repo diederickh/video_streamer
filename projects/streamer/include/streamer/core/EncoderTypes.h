@@ -46,30 +46,12 @@ struct AVPacket {
   uint8_t type;                  /* either AV_TYPE_VIDEO or AV_TYPE_AUDIO */
   uint32_t timestamp;            /* timestamp that will be used by the FLVTag; this is the timestamp on which the data for this packet was genearted in millis, started with 0 */
   std::vector<uint8_t> data;     /* the actual RAW video or audio data that will be encoded */
-  //uint8_t* data;
-
-  uint8_t* planes[3];              
-  uint32_t strides[3]; 
-
-#if 0  
-  uint32_t y_offset;             /* video packet: offset into the `data` member where the y-plane starts, if not set we don't use it */
-  uint32_t u_offset;             /* video packet: offset into the `data` member where the u-plane starts, if not set we dont' use it */
-  uint32_t v_offset;             /* video packet: offset into the `data` member where the v-plane starts, if not set we dont' use it */
-#endif 
-
+  uint8_t* planes[3];            /* pointer to the planes in `data` */
+  uint32_t strides[3];           /* strides of the Y,U,V planes in `data` */
   MemoryPool* memory_pool;       /* the memory pool to which this packet belongs */
   uint32_t refcount;             /* when addRef() is called this gets incremented, release() decrements it  (through memory pool) */
 };
 
-// -----------------------------------------
-#if 0
-struct Picture {                  /* represents a generic image that's is e.g. used by the TestPattern generator */
-  Picture();
-  void print();                   /* just print some info */
-  uint8_t* planes[3];
-  uint32_t strides[3];            /* strides for y, u and v planes */
-};
-#endif
 // -----------------------------------------
 
 struct VideoSettings {
@@ -79,6 +61,8 @@ struct VideoSettings {
   uint16_t width;         /* width of the incoming frames */
   uint16_t height;        /* height of the incoming frames */
   uint8_t fps;            /* framerate, e.g. 60 */
+  uint32_t bitrate;       /* preferred bitrate in kbps, setting vbv_buffer_size as bitrate control  */
+  uint16_t threads;       /* number of encoding threads - sets the i_threads x264 parameter */
 };
 
 // -----------------------------------------

@@ -65,6 +65,8 @@ bool VideoStreamerConfig::load(std::string filepath) {
       sc->video.width = conf.readU16(stream, "video/width");
       sc->video.height = conf.readU16(stream, "video/height");
       sc->video.fps = conf.readU16(stream, "video/fps");
+      sc->video.bitrate = conf.readU16(stream, "video/bitrate");
+      sc->video.threads = conf.readU16(stream, "video/threads");
 
       if(conf.doesNodeExists(stream, "audio")) {
         sc->audio.samplerate = conf.readU32(stream, "audio/samplerate");

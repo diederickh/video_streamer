@@ -30,28 +30,32 @@
 <videostreamer>
 
   <settings>
-    <default_stream_id>0</default_stream_id>
+    <default_stream_id>0</default_stream_id>  
   </settings>
 
-  <streams>
-    <stream>
-      <id>0</id>
+  <streams>                                  <!-- contains all the streams -->
+    <stream>                                 <!-- each separate video stream is contained in it's own <stream> block -->
+      <id>0</id>                             <!-- ID, must be unique and is used internally when you have multiple quality streams -->
       <server>
+        <username></username>                <!-- when necessary set the username -->
+        <password></password>                <!-- when necessary set the password -->
         <url>rtmp://192.168.0.188/flvplayback/livestream</url>
       </server>
       <video>
-        <width>320</width>
-        <height>240</height>
-        <fps>15</fps>
+        <width>320</width>                    <!-- width of the output video -->
+        <height>240</height>                  <!-- height of the output video -->
+        <fps>15</fps>                         <!-- desired framerate to encode --> 
+        <bitrate>400</bitrate>                <!-- the bitrate you want to use for the video, in kbps --> 
+        <threads>4</threads>                  <!-- the number of x264 encoder threads, set this to the number of logical cores -->
       </video>
       <audio>
-        <samplerate>0</samplerate>
-        <mode>0</mode>
-        <bitsize>0</bitsize>
-        <bitrate>0</bitrate> <!-- in kbps -->
-        <quality>0</quality>
-        <in_bitsize>0</in_bitsize>
-        <in_interleaved>0</in_interleaved>
+        <samplerate>0</samplerate>            <!-- samplerate: 44100, 22050, 11025 -->
+        <mode>0</mode>                        <!-- mode: mono = 1, stereo = 2 -->
+        <bitsize>0</bitsize>                  <!-- bitsize: S8 = 0, S16 = 2, F32 = 3 -->
+        <bitrate>0</bitrate>                  <!-- in kbps -->
+        <quality>0</quality>                  <!-- quality to use, value between 0 and 9, 0 = best (slow), 9 = worst (fast), 5 is ok -->
+        <in_bitsize>0</in_bitsize>            <!-- we have basic support for conversion, set this to the input  bitsize, see bitsize above for the values you can use  -->
+        <in_interleaved>0</in_interleaved>    <!-- 0 = not using interleaved audio, 1 = using interleaved audio -->
       </audio>
     </stream>
   </streams>

@@ -1,6 +1,11 @@
 #if !defined(_WIN32)
 #  include <unistd.h>
 #endif
+
+extern "C" {
+#  include <uv.h>
+}
+
 #include <iostream>
 #include <streamer/core/RTMPThread.h>
 #include <streamer/core/RTMPWriter.h>
@@ -18,6 +23,12 @@ void rtmp_thread_func(void* user) {
   uint64_t packet_time_max = 0;
   uint64_t bytes_written = 0; // just showing some debug info
   bool must_stop = false;
+
+  double bitrate_now = 0; /* just the current time */
+  double bitrate_delay = 1000 * 1000 * 1000; /* used to give you the bitrate - delay in nanoseconds */
+  double bitrate_timeout = uv_hrtime() + bitrate_delay;
+  double bitrate_kbps = 0; /* bitrate of the last "bitrate_delay" */
+  double bitrate_time_started = uv_hrtime();
 
   while(!must_stop) {
 
@@ -54,15 +65,17 @@ void rtmp_thread_func(void* user) {
 
       packet_time_max = pkt->timestamp;
 
-      static int i = 0;
-      ++i;
-      if(i > 50) {
-        printf("rtmp mbytes processed: %f \n", double(bytes_written/(1024.0 * 1024.0)));
-        i = 0;
+      bytes_written += pkt->data.size(); // just some debug info
+
+      rtmp_writer.write(&pkt->data.front(), pkt->data.size());
+      
+      bitrate_now = uv_hrtime();
+      if(bitrate_now > bitrate_timeout) {
+        bitrate_kbps = ((bytes_written * 8) / 1000.0) / ((uv_hrtime() - bitrate_time_started) / 1000000000); //  / ((uv_hrtime() - bitrate_time_started)); // in millis
+        printf("-- kbps: %0.2f, bytes processed: %f \n", bitrate_kbps, double(bytes_written/(1024.0 * 1024.0)));
+        bitrate_timeout = bitrate_now + bitrate_delay;
       }
 
-      bytes_written += pkt->data.size(); // just some debug info
-      rtmp_writer.write(&pkt->data.front(), pkt->data.size());
       delete pkt;
       pkt = NULL;
       it = todo.erase(it);

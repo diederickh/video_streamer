@@ -70,6 +70,7 @@ cd rtmpd\builders\cmake\
 ````
 
 ### Live stream playback
+
 To create a live stream playback you need to first setup rtmpd server as described above. Because
 I'm using flowplayer I followed the documentation that describes how to setup a live video player
 using their RTMP plugin. See [this page for more information](http://flash.flowplayer.org/plugins/streaming/rtmp.html#live). 
@@ -158,6 +159,15 @@ _Settings_
 
 - _vbv_: Video Buffer Verifier, in x264 is used to control output bitrate for streaming.
 - _weightp_: some players do not support weighted p-frames, set weightp = 0, for flash.
+- To control the output bitrate for live streaming use the _params.rc.i_vbv_buffer_size_ 
+  and _params.rc.i_vbv_max_bitrate_. The _i_vbv_buffer_size_ is a decoder configuration and
+  determines how much of the decoding buffer must be filled before playback can start. 
+  Lets say you want to stream video and you have want to limit bitrate to 512kbits/sec, where
+  you want e.g. 64kbit for the audio, which gives you: 512 - 64 = 448 kbits/sec for the video.
+  If you want playback to start after 0.5 second, you use the following settings:
+    - rc.i_vbv_buffer_size = 448 * 0.5;
+    - rc.i_vbv_maxrate = 448;
+  
 
 ### Dependencies
 
@@ -191,7 +201,8 @@ VideoStreamer depends on the following libraries:
 References
 [0] = X264 for live streaming: http://veetle.com/index.php/article/view/x264
 [1] = Some good info on settings: http://doom10.org/index.php?topic=2084.0 
-[3] = Adobe H264 info: http://www.adobe.com/devnet/adobe-media-server/articles/h264_encoding.html 
+[2] = Adobe H264 info: http://www.adobe.com/devnet/adobe-media-server/articles/h264_encoding.html 
+[3] = X264 bitrate settings: http://mewiki.project357.com/wiki/X264_Encoding_Suggestions 
 
 ### Notes:
 - make sure that all packets you send are 100% ascending order of timestamps

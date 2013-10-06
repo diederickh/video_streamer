@@ -13,6 +13,8 @@
         <width>320</width>
         <height>240</height>
         <fps>15</fps>
+        <bitrate>400</bitrate>
+        <threads>4</threads>
       </video>
       <audio>
         <samplerate>0</samplerate>

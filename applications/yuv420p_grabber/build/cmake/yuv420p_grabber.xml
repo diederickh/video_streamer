@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <videostreamer>
+  <settings>
+    <default_stream_id>0</default_stream_id>
+  </settings>
   <streams>
     <stream>
       <id>0</id>
@@ -10,6 +13,8 @@
         <width>1280</width>
         <height>720</height>
         <fps>15</fps>
+        <bitrate>600</bitrate>
+        <threads>4</threads>
       </video>
       <audio>
         <samplerate>0</samplerate>

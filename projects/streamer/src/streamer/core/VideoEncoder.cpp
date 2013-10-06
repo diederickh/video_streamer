@@ -11,11 +11,6 @@ VideoEncoder::VideoEncoder()
   ,vflip(true)
   ,frame_num(0)
 {
-  /*
-  strides[0] = 0;
-  strides[1] = 0;
-  strides[2] = 0;
-  */
 }
 
 VideoEncoder::~VideoEncoder() {
@@ -32,20 +27,6 @@ bool VideoEncoder::setup(VideoSettings s) {
   assert(s.fps > 0);
 
   settings = s;
-
-  /*
-  if(!strides[0]) {
-    strides[0] = settings.width;
-  }
-
-  if(!strides[1]) {
-    strides[1] = settings.width >> 1;
-  }
-
-  if(!strides[2]) {
-    strides[2] = settings.width >> 1;
-  }
-  */
 
   return true;
 }
@@ -67,6 +48,7 @@ bool VideoEncoder::initialize() {
   return true;
 }
 
+// See https://gist.github.com/roxlu/0f61a499df75e64b764d for an older version of this, with some rate control tests
 bool VideoEncoder::initializeX264() {
   assert(settings.width > 0);
   assert(settings.height > 0);
@@ -75,52 +57,27 @@ bool VideoEncoder::initializeX264() {
   int r = 0;
   x264_param_t* p = &params;
   
-  r = x264_param_default_preset(p, "ultrafast", "zerolatency");
+  r = x264_param_default_preset(p, "superfast", "zerolatency");
   if(r != 0) {
     printf("error: cannot set the default preset on x264.\n");
     return false;
   }
 
 #if !defined(NDEBUG)
-  //  p->i_log_level = X264_LOG_DEBUG;
+  p->i_log_level = X264_LOG_DEBUG;
 #endif   
+
   p->i_threads = 1;
   p->i_width = settings.width;
   p->i_height = settings.height;
   p->i_fps_num = settings.fps;
   p->i_fps_den = 1;
-  p->b_annexb = 0; // flv == no annexb, but strangely, when I disable it the generated flv cannot be played back, for raw h264 you'll need to set annexb to 1 wehn you want to play it in vlc
-  //p->b_repeat_headers = 1;  // @todo - test this, we might want SPS/PPS before every keyframe! (when we set b_repeat_headers to 0 and convert the raw .h264 to .mov (with avconv) the resulting mov is faulty)
-  //p->rc.i_rc_method = X264_RC_CRF;
-  //p->rc.i_bitrate = 100;
-  //p->i_bframe_pyramid = 0;
-  //p->i_keyint_max = 5; // @todo - when writing raw frames to an .h264 file we need this else the video is going to be garbage  
-  //p->i_timebase_num = 1;
-  //p->i_timebase_den = 1000;
+  p->b_annexb = 0; // flv == no annexb, but strangely, when I disable it the generated flv cannot be played back, for raw h264 you'll need to set annexb to 1 when you want to play it in vlc (vlc isn't properly playing back flv)
 
-  //p->i_bframe_adaptive = X264_B_ADAPT_FAST; // http://veetle.com/index.php/article/view/x264, see bframes section
-  //p->i_bframe = 16; // http://veetle.com/index.php/article/view/x264, see bframes
-  // p->rc.i_vbv_max_bitrate = 100;
-  //p->b_vfr_input = 1; // if 1, use timebase and timestamps for ratecontrol purposes
-
-#define USE_CONSTANT_QUALITY 0
-#define USE_BITRATE_QUALITY 1
-
-#if USE_CONSTANT_QUALITY
-  p->rc.i_rc_method = X264_RC_CQP;
-  p->rc.i_qp_constant = 25;
-#elif USE_BITRATE_QUALITY
-  p->rc.i_rc_method = X264_RC_ABR;
-  p->rc.i_bitrate = 360;
-#endif
-
-#if 0
-  // tmp
-  p->rc.i_rc_method = X264_RC_CRF;
-  p->rc.f_rf_constant = 25;
-  p->rc.f_rf_constant_max = 45;
-#endif
-  // end 
+  p->rc.i_rc_method = X264_RC_ABR;  // when you're limited to bandwidth you set the vbv_buffer_size and vbv_max_bitrate using the X264_RC_ABR rate control method. The vbv_buffer_size is a decoder option and tells the decoder how much data must be buffered before playback can start. When vbv_max_bitrate == vbv_buffer_size, then it will take one second before the playback might start. when vbv_buffer_size == vbv_max_bitrate * 0.5, it might start in 0.5 sec. 
+  p->rc.i_bitrate = settings.bitrate;
+  p->rc.i_vbv_buffer_size = p->rc.i_bitrate; 
+  p->rc.i_vbv_max_bitrate = p->rc.i_bitrate;
 
 #if 0
   r = x264_param_apply_profile(p, "main");
@@ -144,19 +101,8 @@ bool VideoEncoder::initializeX264() {
 }
 
 bool VideoEncoder::initializePic() {
+
   unsigned int csp = (vflip) ? X264_CSP_I420 | X264_CSP_VFLIP : X264_CSP_I420;
-  //printf("ve.width : %d\n", settings.width);
-  //printf("ve.height: %d\n", settings.height);
-  //printf("strides: %d, %d, %d\n", strides[0], strides[1], strides[2]);
-
-#if 0 
-  int r = x264_picture_alloc(&pic_out, csp, settings.width, settings.height);
-  if(r != 0) {
-    printf("error: cannot allocate the pic_out.\n");
-    return false;
-  }
-#endif
-
   x264_picture_init(&pic_in);
   pic_in.img.i_csp = csp;
   pic_in.img.i_plane = 3;
@@ -185,14 +131,18 @@ bool VideoEncoder::encodePacket(AVPacket* p, FLVTag& tag) {
 
   x264_nal_t* nal = NULL;
   int nals_count = 0;
+
 #if defined(USE_GRAPH)
   uint64_t enc_start = uv_hrtime() / 1000000;
 #endif
+
   int frame_size = x264_encoder_encode(encoder, &nal, &nals_count, &pic_in, &pic_out);
+
 #if defined(USE_GRAPH)
   frames_graph["enc_video"] += ((uv_hrtime()/1000000) - enc_start);
   frames_graph["enc_audio_video"] += ((uv_hrtime()/1000000) - enc_start);
 #endif
+
   if(frame_size < 0) {
     printf("error: x264_encoder_encode failed.\n");
     return false;
@@ -278,9 +228,11 @@ bool VideoEncoder::createDecoderConfigurationRecord(AVCDecoderConfigurationRecor
   std::copy(sps, sps+(sps_size-4), std::back_inserter(rec.sps));
   std::copy(pps, pps+(pps_size-4), std::back_inserter(rec.pps));
   std::copy(sei, sei+(sei_size-4), std::back_inserter(rec.sei));
+
   printf(">> nals[0].i_payload: %d, sps_size: %d, profile: %d\n", nals[0].i_payload, sps_size, sps[1]);
   printf(">> nals[1].i_payload: %d, pps_size: %d\n", nals[1].i_payload, pps_size);
   printf(">> nals[2].i_payload: %d, sei_size: %d / %ld\n", nals[2].i_payload, sei_size, rec.sei.size());
+
   return true;
 } 
 

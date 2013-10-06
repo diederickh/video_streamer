@@ -103,10 +103,9 @@ int main() {
   // knows how to use the input data we pass into the AVPackets. 
   // The YUV420PGrabber creates a stacked version for each of the different video output
   // sizes you've added (see above addSize). We pack the video data like: 
-  // http://www.flickr.com/photos/diederick/10027076563/ (though be aware the memory is upside down! 
+  // http://www.flickr.com/photos/diederick/10027076563/ (though be aware the memory is upside down!)
   // this is a opengl thing
   YUV420PSize size = grabber.getSize(use_size_id);  
-  streamer.setStrides(size.strides[0], size.strides[1], size.strides[2]);
   streamer.setVideoWidth(size.yw);
   streamer.setVideoHeight(size.yh);
 
@@ -155,12 +154,7 @@ int main() {
       else {
         vid->makeVideoPacket();
         vid->setTimeStamp(grabber.getTimeStamp());
-        vid->data.assign(grabber.getPtr(), grabber.getPtr() + grabber.getNumBytes()); // takes roughly ~0.7-0.9ms for a video texture of 1900800 bytes (1.8mb)
-      
-        YUV420PSize size = grabber.getSize(use_size_id);
-        vid->y_offset = size.y_offset;
-        vid->u_offset = size.u_offset;
-        vid->v_offset = size.v_offset;
+        grabber.assignFrame(use_size_id, vid->data, vid->planes, vid->strides);
         streamer.addVideo(vid);
       }
     }

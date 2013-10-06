@@ -92,7 +92,9 @@ h2 {
     height:288px;
 }
 
-
+.player h2 { 
+    margin-top:20px;
+}
 .player {
     margin-bottom:20px;
 }

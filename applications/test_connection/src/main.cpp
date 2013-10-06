@@ -12,6 +12,7 @@
  */
 
 #define MIC_IN 1 /* do you want to use microphone input? Set to 1 or 0  */
+#define USE_AUDIO 1 /* set to 1 if you want audio */
 
 #include <signal.h>
 #include <iostream>
@@ -115,7 +116,7 @@ int main() {
       }
     }
     
-#if MIC_IN == 0
+#if MIC_IN == 0 && USE_AUDIO == 1
     if(tp.hasAudioFrame()) {
       AVPacket* au_pkt = mempool.getFreeAudioPacket();
       if(au_pkt) {
@@ -146,6 +147,7 @@ void sighandler(int signum) {
 }
 
 void on_audio_in(const void* input, unsigned long nframes, void* user) {
+#if USE_AUDIO  
   AVPacket* au_pkt = mempool.getFreeAudioPacket();
   if(au_pkt) {
     uint8_t* ptr = (uint8_t*)input;
@@ -154,4 +156,5 @@ void on_audio_in(const void* input, unsigned long nframes, void* user) {
     au_pkt->setTimeStamp(tp.getTimeStamp());
     vs.addAudio(au_pkt);
   }
+#endif
 }
