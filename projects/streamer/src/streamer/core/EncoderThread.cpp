@@ -41,7 +41,8 @@ void encoder_thread_func(void* user) {
       AVPacket& pkt = **it;
 
       // packets must be 100% ascending (cannot sort because "older" packets might be added after the current "todo" buffer)
-      if(pkt.timestamp <= last_timestamp) {
+      if(pkt.timestamp < last_timestamp) {
+        printf("warning: not adding poackets because timestamp is not strictly increasing, type = %d, %d < %lld\n", pkt.type, pkt.timestamp, last_timestamp );
         pkt.release();
         continue;
       }

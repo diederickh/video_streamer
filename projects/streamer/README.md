@@ -169,6 +169,24 @@ VideoStreamer depends on the following libraries:
 - openssl 
 - zlib
 - lamemp3
+- nanomsg
+- rapidxml
+
+### Setup Wowza for live streaming
+
+- Open Finder, go to Applications > Wowzo Media Server 3.6.2 > WowzaMediaServer
+- Create directory inside the wowza install dir: [install-dir] > applications > live
+- Create configuration: _[install-dir] > conf > live_, and copy _[install-dir] > conf > Application.xml_ into it.
+- Edit the copied Application.xml:
+
+````xml
+			<StreamType>live</StreamType>
+      <HTTPStreamers>cupertinostreaming,smoothstreaming,sanjosestreaming</HTTPStreamers>
+      <LiveStreamPacketizers>cupertinostreamingpacketizer,smoothstreamingpacketizer,sanjosestreamingpacketizer</LiveStreamPacketizers>
+      <PlayMethod>none</PlayMethod>
+````
+
+- Start Wowza  
 
 References
 [0] = X264 for live streaming: http://veetle.com/index.php/article/view/x264

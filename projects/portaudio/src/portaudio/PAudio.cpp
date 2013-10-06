@@ -107,9 +107,9 @@ bool PAudio::openInputStream(int device, int nchannels,
   params.sampleFormat = format;
   params.suggestedLatency = Pa_GetDeviceInfo(device)->defaultLowInputLatency;
 
-  PaError err = Pa_OpenStream(&input_stream, &params, NULL
-                              ,samplerate, framesPerBuffer, paClipOff
-                              ,paudio_in, (void*) this);
+  PaError err = Pa_OpenStream(&input_stream, &params, NULL,
+                              samplerate, framesPerBuffer, paClipOff,
+                              paudio_in, (void*) this);
 
   if(err != paNoError) {
     printf("error: cannot open input stream: %s\n", Pa_GetErrorText(err));

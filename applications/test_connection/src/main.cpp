@@ -10,6 +10,9 @@
   url of the media server and widht/height etc.. 
 
  */
+
+#define MIC_IN 1 /* do you want to use microphone input? Set to 1 or 0  */
+
 #include <signal.h>
 #include <iostream>
 #include <string>
@@ -18,13 +21,20 @@
 #include <streamer/core/TestPattern.h>
 #include <streamer/core/MemoryPool.h>
 
+#if MIC_IN
+#  include <portaudio/PAudio.h>
+   void on_audio_in(const void* input, unsigned long nframes, void* user);
+#endif
+
+MemoryPool mempool;
+VideoStreamer vs;
+TestPattern tp;
+
 bool must_run = false;
 
 void sighandler(int signum);
 
 int main() {
-
-  VideoStreamer vs;
   
   std::string settings_file = rx_get_exe_path() +"connection_test.xml";
   if(!vs.loadSettings(settings_file)) {
@@ -32,7 +42,34 @@ int main() {
     ::exit(EXIT_FAILURE);
   }
 
-  TestPattern tp;
+#if MIC_IN
+
+  AudioSettings audio_settings;
+  audio_settings.samplerate = AV_AUDIO_SAMPLERATE_44100;
+  audio_settings.mode = AV_AUDIO_MODE_STEREO;
+  audio_settings.bitsize = AV_AUDIO_BITSIZE_S16;
+  audio_settings.quality = 6;
+  audio_settings.bitrate = 64;
+  audio_settings.in_bitsize = AV_AUDIO_BITSIZE_S16;
+  audio_settings.in_interleaved = true;
+
+  PAudio paudio;
+  paudio.listDevices();
+  if(!paudio.openInputStream(paudio.getDefaultInputDevice(), 2, paInt16, 44100, 512)) {
+    printf("error: cannot set port audio.\n");
+    ::exit(EXIT_FAILURE);
+  }
+  printf("Using input audio device: %d\n", paudio.getDefaultInputDevice());
+
+  paudio.setCallback(on_audio_in, NULL);
+
+  vs.setAudioSettings(audio_settings);
+
+  //std::string output_file = rx_get_exe_path() +"test.flv";
+  //vs.setOutputFile(output_file);
+#endif
+
+
   if(!tp.setup(vs.getVideoWidth(), vs.getVideoHeight(), vs.getFrameRate(), vs.getSampleRate())) {
     printf("error: cannot setup the test pattern.\n");
     ::exit(EXIT_FAILURE);
@@ -40,7 +77,7 @@ int main() {
 
   printf("Loaded streamer with: %d x %d @ %d, samplerate: %d\n", vs.getVideoWidth(), vs.getVideoHeight(), vs.getFrameRate(), vs.getSampleRate());
 
-  MemoryPool mempool;
+  
   mempool.allocateVideoFrames(10, tp.getNumVideoBytes());
   mempool.allocateAudioFrames(512, tp.getNumAudioBytes());
 
@@ -53,6 +90,10 @@ int main() {
   if(!vs.start()) {
     ::exit(EXIT_FAILURE);
   }
+
+#if MIC_IN
+  paudio.start();
+#endif
 
   tp.start();
 
@@ -74,6 +115,7 @@ int main() {
       }
     }
     
+#if MIC_IN == 0
     if(tp.hasAudioFrame()) {
       AVPacket* au_pkt = mempool.getFreeAudioPacket();
       if(au_pkt) {
@@ -84,10 +126,15 @@ int main() {
       else {
         printf("error: cannot get new audio frame.\n");
       }
-
     }
-
+#endif
   }
+
+
+
+#if MIC_IN
+  paudio.stop();
+#endif
 
   return EXIT_SUCCESS;
 }
@@ -96,4 +143,15 @@ int main() {
 void sighandler(int signum) {
   printf("\nStop!\n");
   must_run = false;
+}
+
+void on_audio_in(const void* input, unsigned long nframes, void* user) {
+  AVPacket* au_pkt = mempool.getFreeAudioPacket();
+  if(au_pkt) {
+    uint8_t* ptr = (uint8_t*)input;
+    size_t nbytes = nframes * sizeof(short int) * 2;
+    au_pkt->data.assign(ptr, ptr + nbytes);
+    au_pkt->setTimeStamp(tp.getTimeStamp());
+    vs.addAudio(au_pkt);
+  }
 }

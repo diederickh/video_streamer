@@ -49,7 +49,6 @@ class RTMPThread : public FLVListener {
  public:
   FLVWriter& flv;
   RTMPWriter& rtmp_writer;
-  volatile bool must_stop;
   uv_thread_t thread;
   uv_cond_t cv;
   uv_mutex_t mutex;

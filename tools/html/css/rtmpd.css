@@ -92,12 +92,12 @@ h2 {
     height:288px;
 }
 
-#live_container {
-    width:320px;
-    height:240px;
-}
 
 .player {
     margin-bottom:20px;
 }
 
+.player div {
+    width:640px;
+    height:360px;
+}

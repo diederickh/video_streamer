@@ -12,6 +12,7 @@ include(${CMAKE_CURRENT_LIST_DIR}/../../../../projects/xmlconfig/build/cmake/CMa
 include(${CMAKE_CURRENT_LIST_DIR}/../../../../projects/decklink/build/cmake/CMakeLists.txt) # decklink
 include(${CMAKE_CURRENT_LIST_DIR}/../../../../projects/tinylib/build/cmake/CMakeLists.txt) # tinylib
 include(${CMAKE_CURRENT_LIST_DIR}/../../../../projects/hwscale/build/cmake/CMakeLists.txt) # hwscale
+include(${CMAKE_CURRENT_LIST_DIR}/../../../../projects/portaudio/build/cmake/CMakeLists.txt) # portaudio
 
 set(app_source_dir ${CMAKE_CURRENT_LIST_DIR}/../../src/)
 set(app_name "test_connection")
@@ -25,6 +26,7 @@ set(app_source_files
   ${xmlconfig_source_files}
   ${decklink_source_files}
   ${hwscale_source_files}
+  ${portaudio_source_files}
   ${app_source_dir}/main.cpp
   ${extern_dir}/src/GLXW/glxw.c
 )
@@ -35,6 +37,7 @@ set(app_libraries
   ${streamer_libraries}
   ${decklink_libraries}
   ${hwscale_libraries}
+  ${portaudio_libraries}
   ${OPENGL_gl_LIBRARY}
 )
 
@@ -71,6 +74,7 @@ include_directories(
   ${tinylib_include_dirs}
   ${hwscale_include_dirs}
   ${extern_include_dirs}
+  ${portaudio_include_dirs}
 )
 
 add_executable(${app_name} ${app_source_files})

@@ -26,7 +26,7 @@ function setup_live_playback() {
     ,plugins: {
       rtmpd: {
         url: "swf/flowplayer.rtmp-3.2.12.swf"
-        ,netConnectionUrl: "rtmp://127.0.0.1/flvplayback/"
+        ,netConnectionUrl: "rtmp://test.home.roxlu.com/flvplayback/"
       }
     }
   });
@@ -66,6 +66,26 @@ function setup_raw_playback() {
     }
   });
 }
+
+function setup_wowza_playback() {
+
+  $f("wowza_container", "swf/flowplayer-3.2.16.swf", {
+    clip: {
+      url: "livestream"
+      ,live: true
+      ,provider:"rtmpd"
+    }
+    ,plugins: {
+      rtmpd: {
+        url: "swf/flowplayer.rtmp-3.2.12.swf"
+        ,netConnectionUrl: "rtmp://test.home.roxlu.com/flvplayback/"
+      }
+    }
+  });
+
+
+}
+
 
 
 function setup_file_playback() {
@@ -107,7 +127,8 @@ function video_streamer_init() {
 
   //setup_flv_playback();
   //setup_akamai_playback();
-  setup_live_playback();
+  //setup_live_playback();
+  setup_wowza_playback();
   //setup_raw_playback();
   //setup_rtmpdump_playback();
   //setup_file_playback();

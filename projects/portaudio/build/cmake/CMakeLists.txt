@@ -18,27 +18,18 @@ set(portaudio_source_files
 )
 
 if(APPLE)
-#   find_library(fr_opengl OpenGL)
-#   find_library(fr_iokit IOKit)
-#   find_library(fr_cf CoreFoundation)
-#   find_library(fr_cocoa Cocoa)
-
   find_library(fr_audio CoreAudio)
   find_library(fr_audio_unit AudioUnit)
   find_library(fr_audio_toolbox AudioToolbox)
   find_library(fr_core_services CoreServices)
   
-
-set(portaudio_libraries
-#     ${fr_opengl} 
-#     ${fr_iokit} 
-#     ${fr_cf}
-#     ${fr_cocoa}
+  set(portaudio_libraries
    ${fr_audio}
    ${fr_audio_unit}
    ${fr_audio_toolbox}
    ${fr_core_services}
    ${extern_dir}/lib/libportaudio.a
    )
+
 endif()
 
