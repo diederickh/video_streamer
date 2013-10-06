@@ -29,7 +29,7 @@ bool ofxVideoStreamerScreenCapture::setup(std::string filename,
   }
 
   YUV420PSize size = grabber.getSize(0);
-  streamer.setStrides(size.strides[0], size.strides[1], size.strides[2]);
+  //streamer.setStrides(size.strides[0], size.strides[1], size.strides[2]);
   streamer.setVideoWidth(size.yw);
   streamer.setVideoHeight(size.yh);
 
@@ -73,12 +73,15 @@ void ofxVideoStreamerScreenCapture::endGrab() {
   else {
     vid->makeVideoPacket();
     vid->setTimeStamp(grabber.getTimeStamp());
+    grabber.assignFrame(0, vid->data, vid->planes, vid->strides);
+    /*
     vid->data.assign(grabber.getPtr(), grabber.getPtr() + grabber.getNumBytes()); // takes roughly ~0.7-0.9ms for a video texture of 1900800 bytes (1.8mb)
-      
+
     YUV420PSize size = grabber.getSize(0);
     vid->y_offset = size.y_offset;
     vid->u_offset = size.u_offset;
     vid->v_offset = size.v_offset;
+    */
     streamer.addVideo(vid);
   }
 }
