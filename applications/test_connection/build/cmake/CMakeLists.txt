@@ -14,7 +14,7 @@ include(${CMAKE_CURRENT_LIST_DIR}/../../../../projects/tinylib/build/cmake/CMake
 include(${CMAKE_CURRENT_LIST_DIR}/../../../../projects/hwscale/build/cmake/CMakeLists.txt) # hwscale
 
 set(app_source_dir ${CMAKE_CURRENT_LIST_DIR}/../../src/)
-set(app_name "connection_test")
+set(app_name "test_connection")
 
 if(CMAKE_BUILD_TYPE STREQUAL Debug)
   set(app_name "${app_name}_debug")

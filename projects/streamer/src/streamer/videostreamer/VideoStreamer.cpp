@@ -113,6 +113,7 @@ bool VideoStreamer::setup() {
     if(!audio_enc.setup(audio_settings)) {
       return false;
     }
+
     flv_writer.setAudioCodec(FLV_SOUNDFORMAT_MP3);
     flv_writer.setAudioDataRate(audio_settings.bitrate);
     flv_writer.setAudioSampleRate(encoder_samplerate_to_flv(audio_settings.samplerate));

@@ -137,6 +137,7 @@ bool AudioEncoder::encodePacket(AVPacket* p, FLVTag& tag) {
 
   if(settings.in_bitsize == AV_AUDIO_BITSIZE_S16) {
     nsamples = p->data.size() / (sizeof(int16_t) * nchannels);
+    //printf("----------------- samples: %d, channels: %d, data.size(): %zu\n", nsamples, nchannels, p->data.size());
     written = lame_encode_buffer_interleaved(lame_flags, (short int*)&p->data.front(), nsamples, mp3_buffer, AUDIO_ENCODER_BUFFER_SIZE);
   }
   else if(settings.in_bitsize == AV_AUDIO_BITSIZE_F32) {

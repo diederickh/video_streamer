@@ -28,3 +28,20 @@ bool MemoryPool::allocateVideoFrames(size_t nframes, uint32_t nbytes) {
   return true;
 }
 
+bool MemoryPool::allocateAudioFrames(size_t nframes, uint32_t nbytes) {
+
+  lockAudio();
+  {
+    for(size_t i = 0; i < nframes; ++i) {
+      AVPacket* pkt = new AVPacket(this);
+      pkt->allocate(nbytes);
+      pkt->makeAudioPacket();
+      pkt->refcount = 0; // make sure refcount starts at zero, so it's free
+      audio_packets.push_back(pkt);
+    }
+  }
+  unlockAudio();
+
+  return true;
+}
+

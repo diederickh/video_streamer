@@ -16,6 +16,7 @@
 #include <tinylib/tinylib.h>
 #include <streamer/videostreamer/VideoStreamer.h>
 #include <streamer/core/TestPattern.h>
+#include <streamer/core/MemoryPool.h>
 
 bool must_run = false;
 
@@ -39,6 +40,10 @@ int main() {
 
   printf("Loaded streamer with: %d x %d @ %d, samplerate: %d\n", vs.getVideoWidth(), vs.getVideoHeight(), vs.getFrameRate(), vs.getSampleRate());
 
+  MemoryPool mempool;
+  mempool.allocateVideoFrames(10, tp.getNumVideoBytes());
+  mempool.allocateAudioFrames(512, tp.getNumAudioBytes());
+
   signal(SIGINT, sighandler);
 
   if(!vs.setup()) {
@@ -60,16 +65,26 @@ int main() {
     tp.update();
 
     if(tp.hasVideoFrame()) {
-      AVPacket* vid_pkt = new AVPacket();
-      vid_pkt->allocate(nbytes_video);
-      tp.generateVideoFrame(vid_pkt->data);
-      vid_pkt->makeVideoPacket();
-      vid_pkt->setTimeStamp(tp.timestamp);
-      vs.addVideo(vid_pkt);
+      AVPacket* vid_pkt = mempool.getFreeVideoPacket(); // packet is owned by memory pool and released by 
+      if(vid_pkt) {
+        tp.generateVideoFrame(vid_pkt->data, vid_pkt->planes, vid_pkt->strides);
+        vid_pkt->makeVideoPacket();
+        vid_pkt->setTimeStamp(tp.getTimeStamp());
+        vs.addVideo(vid_pkt);
+      }
     }
     
     if(tp.hasAudioFrame()) {
-      //("YES audio.\n");
+      AVPacket* au_pkt = mempool.getFreeAudioPacket();
+      if(au_pkt) {
+        tp.generateAudioFrame(au_pkt->data);
+        au_pkt->setTimeStamp(tp.getTimeStamp());
+        vs.addAudio(au_pkt);
+      }
+      else {
+        printf("error: cannot get new audio frame.\n");
+      }
+
     }
 
   }

@@ -81,6 +81,8 @@ class TestPattern {
   bool writeFrameToFile(std::vector<uint8_t>& result);
   
   uint32_t getTimeStamp();
+  uint32_t getNumAudioBytes(); /* get the number of bytes that will be generated for each generate audio frame call */
+  uint32_t getNumVideoBytes(); /* returns the number of bytes that we need for the Y, U and V planes */
 
  public:
   int w;
@@ -107,6 +109,20 @@ class TestPattern {
 
 inline uint32_t TestPattern::getTimeStamp() {
   return timestamp;
+}
+
+inline uint32_t TestPattern::getNumVideoBytes() {
+
+  if(!w || !h) {
+    printf("error: cannot calculate number of bytes; no width or height set.\n");
+    ::exit(EXIT_FAILURE);
+  }
+
+  return w * h * 2;
+}
+
+inline uint32_t TestPattern::getNumAudioBytes() {
+  return audio_samples * 2  * sizeof(int16_t); 
 }
 
 inline bool TestPattern::hasVideoFrame() {

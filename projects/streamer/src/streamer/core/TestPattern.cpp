@@ -106,7 +106,6 @@ void TestPattern::generateVideoFrame(std::vector<uint8_t>& result, uint8_t* plan
   }
 }
 
-
 uint32_t TestPattern::generateAudioFrame(std::vector<uint8_t>& result) {
   uint32_t samples_end = sample_num + audio_samples;
   float t = sin(3.14159 * duration);
@@ -121,20 +120,20 @@ uint32_t TestPattern::generateAudioFrame(std::vector<uint8_t>& result) {
   float volume = base_vol + t * 0.2; // 1.0 = loudest
   
   float freq = 240.0;
+  size_t dx = 0;
   for(uint32_t i = sample_num; i < samples_end; ++i) {
     float a = (2 * 3.14159) * i / (samplerate / freq);
     int16_t v = (sin(a) * volume) * 65535;
     uint8_t* ptr = (uint8_t*)&v;
     
     // channel 0
-    result.push_back(ptr[0]);
-    result.push_back(ptr[1]);
+    result[dx++] = ptr[0];
+    result[dx++] = ptr[1];
 
     // channel 1
-    result.push_back(ptr[0]);
-    result.push_back(ptr[1]);
+    result[dx++] = ptr[0];
+    result[dx++] = ptr[1];
   }
-
   sample_num += audio_samples;
   return audio_samples;
 }

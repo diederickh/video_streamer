@@ -39,6 +39,7 @@ class MemoryPool {
   AVPacket* getFreeAudioPacket();
   
   bool allocateVideoFrames(size_t nframes, uint32_t nbytes); /* allocate nframes which will contain nbytes of video data */
+  bool allocateAudioFrames(size_t nframes, uint32_t nbytes); /* allocate nframes which will contain nbytes of audio data */
 
   /* lock the appropriate mutexes */
   void lockVideo();
