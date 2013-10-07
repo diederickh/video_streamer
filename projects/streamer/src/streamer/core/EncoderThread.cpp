@@ -5,6 +5,7 @@
 #include <streamer/flv/FLVWriter.h>
 #include <streamer/core/VideoEncoder.h>
 #include <streamer/core/AudioEncoder.h>
+#include <streamer/core/Log.h>
 #include <streamer/core/EncoderThread.h>
 
 // -------------------------------------------------
@@ -43,7 +44,7 @@ void encoder_thread_func(void* user) {
       // packets must be 100% ascending (cannot sort because "older" packets might be added after the current "todo" buffer)
       // always send all audio, not all video
       if(pkt.type == AV_TYPE_VIDEO && pkt.timestamp < last_timestamp) {
-        printf("warning: not adding poackets because timestamp is not strictly increasing, type = %d, %d < %lld\n", pkt.type, pkt.timestamp, last_timestamp );
+        STREAMER_ERROR("warning: not adding packets because timestamp is not strictly increasing, type = %d, %d < %lld\n", pkt.type, pkt.timestamp, last_timestamp );
         pkt.release();
         continue;
       }
@@ -60,7 +61,7 @@ void encoder_thread_func(void* user) {
         }
       }
       else {
-        printf("- error: EncoderThread cannot handle a AVPacket with type: %d\n", pkt.type);
+        STREAMER_ERROR("- error: EncoderThread cannot handle a AVPacket with type: %d\n", pkt.type);
       }
 
       last_timestamp = pkt.timestamp;
@@ -71,11 +72,11 @@ void encoder_thread_func(void* user) {
     todo.clear();
   }
 
-  printf("todo size: %ld\n", todo.size());
-  printf("work size: %ld\n", enc.work.size());
-  printf("++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
-  printf("frames created: %lld\n", nframes);
-  printf("++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
+  STREAMER_VERBOSE("todo size: %ld\n", todo.size());
+  STREAMER_VERBOSE("work size: %ld\n", enc.work.size());
+  STREAMER_VERBOSE("++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
+  STREAMER_VERBOSE("frames created: %lld\n", nframes);
+  STREAMER_VERBOSE("++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
 
   // reset state when thread stops
   uv_mutex_lock(&enc.mutex);
@@ -121,12 +122,12 @@ EncoderThread::~EncoderThread() {
 bool EncoderThread::start() {
   
   if(state == ENCT_STATE_STARTED) {
-    printf("error: already started! first stop().\n");
+    STREAMER_ERROR("error: already started! first stop().\n");
     return false;
   }
 
   if(!must_stop) {
-    printf("error: seems like the encoder thread is already/still running.\n");
+    STREAMER_ERROR("error: seems like the encoder thread is already/still running.\n");
     return false;
   }
 
@@ -142,7 +143,7 @@ bool EncoderThread::start() {
 bool EncoderThread::stop() {
 
   if(must_stop) {
-    printf("error: seems that we've already stoppped the encoder thread.\n");
+    STREAMER_ERROR("error: seems that we've already stoppped the encoder thread.\n");
     return false;
   }
 
@@ -161,7 +162,7 @@ bool EncoderThread::stop() {
 void EncoderThread::addPacket(AVPacket* pkt) {
 
   if(state == ENCT_STATE_NONE) {
-    printf("warning: not adding a packet to the encoder thread because the thread is not running.\n");
+    STREAMER_ERROR("warning: not adding a packet to the encoder thread because the thread is not running.\n");
     return;
   }
 

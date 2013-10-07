@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <streamer/core/AudioEncoder.h>
+#include <streamer/core/Log.h>
 #if defined(USE_GRAPH)
 #  include <streamer/utils/Graph.h>
 
@@ -20,7 +21,7 @@ AudioEncoder::AudioEncoder()
 }
 
 AudioEncoder::~AudioEncoder() {
-  printf("AudioEncoder::~AudioEncoder() - cleanup.\n");
+  STREAMER_ERROR("AudioEncoder::~AudioEncoder() - cleanup.\n");
 }
 
 bool AudioEncoder::setup(AudioSettings s) {
@@ -31,12 +32,12 @@ bool AudioEncoder::setup(AudioSettings s) {
 bool AudioEncoder::initialize() {
 
   if(lame_flags) {
-    printf("error: cannot initialize AudioEncoder because lame_flags has been setup already.\n");
+    STREAMER_ERROR("error: cannot initialize AudioEncoder because lame_flags has been setup already.\n");
     return false;
   }
   
   if(settings.bitsize == AV_AUDIO_BITSIZE_UNKNOWN) {
-    printf("error: cannot initialize AudioEncoder because the set bitsize is invalid.\n");
+    STREAMER_ERROR("error: cannot initialize AudioEncoder because the set bitsize is invalid.\n");
     return false;
   }
 
@@ -45,17 +46,17 @@ bool AudioEncoder::initialize() {
   }
 
   if(settings.mode == AV_AUDIO_MODE_UNKNOWN) {
-    printf("error: cannot initialize AudioEncoder because the mode (mono/stereo) is invalid.\n");
+    STREAMER_ERROR("error: cannot initialize AudioEncoder because the mode (mono/stereo) is invalid.\n");
     return false;
   }
 
   if(settings.samplerate == AV_AUDIO_SAMPLERATE_UNKNOWN) {
-    printf("error: cannot intialize the AudioEncoder because the samplerate is invalid.\n");
+    STREAMER_ERROR("error: cannot intialize the AudioEncoder because the samplerate is invalid.\n");
     return false;
   }
 
   if(!settings.bitrate) {
-    printf("error: cannot initialize the AudioEncoder because the bitrate was not set.\n");
+    STREAMER_ERROR("error: cannot initialize the AudioEncoder because the bitrate was not set.\n");
     return false;
   }
 
@@ -66,7 +67,7 @@ bool AudioEncoder::initialize() {
     samplerate = 22050;
   }
   else {
-    printf("error: invalid samplerate given for the AudioEncoder.\n");
+    STREAMER_ERROR("error: invalid samplerate given for the AudioEncoder.\n");
     return false;
   }
   
@@ -77,22 +78,22 @@ bool AudioEncoder::initialize() {
   else if(settings.mode == AV_AUDIO_MODE_MONO) {
     mode = MONO;
     nchannels = 1;
-    printf("error: for now we only implement stereo audio.\n");
+    STREAMER_ERROR("error: for now we only implement stereo audio.\n");
     return false;
   }
   else {
-    printf("error: invalid mode given for the AudioEncoder.\n");
+    STREAMER_ERROR("error: invalid mode given for the AudioEncoder.\n");
     return false;
   }
 
   if(settings.quality > 9) {
-    printf("error: invalid quality given for the AudioEncoder, use a value between 0 (best) and 9 (worst).\n");
+    STREAMER_ERROR("error: invalid quality given for the AudioEncoder, use a value between 0 (best) and 9 (worst).\n");
     return false;
   }
 
   lame_flags = lame_init();
   if(!lame_flags) {
-    printf("error: cannot initalize lame.\n");
+    STREAMER_ERROR("error: cannot initalize lame.\n");
     return false;
   }
 
@@ -104,14 +105,14 @@ bool AudioEncoder::initialize() {
   lame_set_quality(lame_flags, settings.quality);
 
   if(lame_init_params(lame_flags) < 0) {
-    printf("error: cannot initialize the lame parameters.\n");
+    STREAMER_ERROR("error: cannot initialize the lame parameters.\n");
     return false;
   }
 
 #if !defined(NDEBUG)
   lame_print_config(lame_flags);
   lame_print_internals(lame_flags);
-  printf("lame: bitrate: %d\n", lame_get_brate(lame_flags));
+  STREAMER_VERBOSE("lame: bitrate: %d\n", lame_get_brate(lame_flags));
 #endif
 
   return true;
@@ -119,7 +120,7 @@ bool AudioEncoder::initialize() {
 
 bool AudioEncoder::shutdown() {
   // @todo - cleanup audio encoder here
-  printf("ERROR: WE STILL NEED TO IMPLEMENT SHUTDOWN FOR AUDIOENCODER.\n");
+  STREAMER_ERROR("error: we still need to implement a proper shutdown() for the AudioEncoder.\n");
   return false;
 }
 

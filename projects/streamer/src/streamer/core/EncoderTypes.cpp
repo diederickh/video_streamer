@@ -1,6 +1,14 @@
 #include <stdio.h>
 #include <streamer/core/EncoderTypes.h>
 #include <streamer/core/MemoryPool.h>
+#include <streamer/core/Log.h>
+
+// -----------------------------------------
+
+MultiAVPacketInfo::MultiAVPacketInfo() {
+  planes[0] = planes[1] = planes[2] = NULL;
+  strides[0] = strides[1] = strides[2] = 0;
+}
 
 // -----------------------------------------
 
@@ -8,15 +16,16 @@ AVPacket::AVPacket(MemoryPool* mp)
   :type(AV_TYPE_UNKNOWN)
   ,timestamp(0)
   ,memory_pool(mp)
+  ,is_multi(false)
 {
   planes[0] = planes[1] = planes[2] = NULL;
   strides[0] = strides[1] = strides[2] = 0;
 }
 
 void AVPacket::print() {
-  printf("AVPacket.strides[0]: %d\n", strides[0]);
-  printf("AVPacket.strides[1]: %d\n", strides[1]);
-  printf("AVPacket.strides[2]: %d\n", strides[2]);
+  STREAMER_VERBOSE("AVPacket.strides[0]: %d\n", strides[0]);
+  STREAMER_VERBOSE("AVPacket.strides[1]: %d\n", strides[1]);
+  STREAMER_VERBOSE("AVPacket.strides[2]: %d\n", strides[2]);
 }
 
 AVPacket::~AVPacket() {
@@ -27,20 +36,22 @@ AVPacket::~AVPacket() {
   timestamp = 0;
   planes[0] = planes[1] = planes[2] = NULL;
   strides[0] = strides[1] = strides[2] = 0;
+  is_multi = false;
+  multi_info.clear();
 }
 
 void AVPacket::allocate(size_t nbytes) {
   data.assign(nbytes, 0x00);
 }
 
-void AVPacket::addRef() {
+void AVPacket::addRef(int count) {
 
   if(!memory_pool) {
-    printf("warning: trying to refcount an AVPacket which does not have a memory pool! - maybe a stop packet?\n");
+    STREAMER_WARNING("warning: trying to refcount an AVPacket which does not have a memory pool! - maybe a stop packet?\n");
     return;
   }
 
-  memory_pool->addRef(this);
+  memory_pool->addRef(this, count);
 }
 
 void AVPacket::release() {
@@ -48,8 +59,8 @@ void AVPacket::release() {
   // @todo - when a AVPacket is not part of a memory pool we need to have a way to cleanly free the memory ..
   // @todo - ... this is e.g. used in the encoder thread when we add a stop packet, this stop packets needs to be deleted which we do herea
   if(!memory_pool) {
-    printf("warning: trying to refcount an AVPacket which does not have a memory pool! - maybe a stop packet?\n");
-    printf("warning: we are going to delete ourself!\n");
+    STREAMER_WARNING("warning: trying to refcount an AVPacket which does not have a memory pool! - maybe a stop packet?\n");
+    STREAMER_WARNING("warning: we are going to delete ourself!\n");
     delete this;
     return;
   }
@@ -69,16 +80,16 @@ VideoSettings::VideoSettings()
 
 bool VideoSettings::validate() {
   if(!width || !height || !fps) {
-    printf("videosettings: invalid settings. width = %d, height = %d, fps = %d\n", width, height, fps);
+    STREAMER_ERROR("videosettings: invalid settings. width = %d, height = %d, fps = %d\n", width, height, fps);
     return false;
   }
   return true;
 }
 
 void VideoSettings::print() {
-  printf("video_settings.width :%d\n", width);
-  printf("video_settings.height :%d\n", height);
-  printf("video_settings.fps :%d\n", fps);
+  STREAMER_VERBOSE("video_settings.width :%d\n", width);
+  STREAMER_VERBOSE("video_settings.height :%d\n", height);
+  STREAMER_VERBOSE("video_settings.fps :%d\n", fps);
 }
 
 // -----------------------------------------
@@ -92,37 +103,37 @@ AudioSettings::AudioSettings()
   ,in_bitsize(AV_AUDIO_BITSIZE_UNKNOWN)
   ,in_interleaved(true)
 {
-  printf("AudioSettings.quality: not used atm\n");
+  STREAMER_VERBOSE("AudioSettings.quality: not used atm\n");
 }
 
 void AudioSettings::print() {
-  printf("audio_settings.samplerate: %d\n", samplerate);
-  printf("audio_settings.mode: %d\n", mode);
-  printf("audio_settings.bitsize: %d\n", bitsize);
-  printf("audio_settings.quality: %d\n", quality);
-  printf("audio_settings.bitrate: %d\n", bitrate);
-  printf("audio_settings.in_bitsize: %d\n", in_bitsize);
-  printf("audio_settings.in_interleaved: %d\n", in_interleaved);
+  STREAMER_VERBOSE("audio_settings.samplerate: %d\n", samplerate);
+  STREAMER_VERBOSE("audio_settings.mode: %d\n", mode);
+  STREAMER_VERBOSE("audio_settings.bitsize: %d\n", bitsize);
+  STREAMER_VERBOSE("audio_settings.quality: %d\n", quality);
+  STREAMER_VERBOSE("audio_settings.bitrate: %d\n", bitrate);
+  STREAMER_VERBOSE("audio_settings.in_bitsize: %d\n", in_bitsize);
+  STREAMER_VERBOSE("audio_settings.in_interleaved: %d\n", in_interleaved);
 }
 
 bool AudioSettings::validate() {
   if(samplerate == AV_AUDIO_SAMPLERATE_UNKNOWN) {
-    printf("audiosettings: no samplerate set.\n");
+    STREAMER_WARNING("audiosettings: no samplerate set.\n");
     return false;
   }
 
   if(mode == AV_AUDIO_MODE_UNKNOWN) {
-    printf("audiosettings: no audio mode set.\n");
+    STREAMER_WARNING("audiosettings: no audio mode set.\n");
     return false;
   }
 
   if(bitsize == AV_AUDIO_BITSIZE_UNKNOWN) {
-    printf("audiosettings: no bitsize set.\n");
+    STREAMER_WARNING("audiosettings: no bitsize set.\n");
     return false;
   }
 
   if(!bitrate) {
-    printf("audiosettings: no bitrate set.\n");
+    STREAMER_WARNING("audiosettings: no bitrate set.\n");
     return false;
   }
 
@@ -141,14 +152,14 @@ ServerSettings::ServerSettings() {
 
 bool ServerSettings::validate() {
   if(!url.size()) {
-    printf("serversettings: no url set.\n");
+    STREAMER_ERROR("serversettings: no url set.\n");
     return false;
   }
   return true;
 }
 
 void ServerSettings::print() {
-  printf("server_settings.url: %s\n", url.c_str());
+  STREAMER_VERBOSE("server_settings.url: %s\n", url.c_str());
 }
 
 // -----------------------------------------

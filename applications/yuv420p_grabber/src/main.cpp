@@ -59,7 +59,7 @@ int main() {
   int w = 1280;
   int h = 720;
 
-  win = glfwCreateWindow(w, h, "DeckLink Streamer", NULL, NULL);
+  win = glfwCreateWindow(w, h, "YUV420PGrabber", NULL, NULL);
   if(!win) {
     glfwTerminate();
     exit(EXIT_FAILURE);

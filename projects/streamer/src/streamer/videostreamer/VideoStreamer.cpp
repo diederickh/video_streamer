@@ -20,6 +20,7 @@ VideoStreamer::VideoStreamer()
   ,video_delay(0)
   ,time_started(0)
   ,flv_file_writer(NULL)
+  ,stream_id(-1)
 {
   printf("~VideoStreamer\n");
 }
@@ -36,6 +37,7 @@ VideoStreamer::~VideoStreamer() {
   }
 
   time_started = 0;
+  stream_id = -1;
 }
 
 bool VideoStreamer::loadSettings(std::string filepath) {
@@ -73,6 +75,8 @@ bool VideoStreamer::loadSettings(std::string filepath) {
     setServerSettings(sc->server);
   }
 
+  setStreamID(sc->id);
+
   return true;
 }
 
@@ -97,9 +101,13 @@ bool VideoStreamer::setup() {
   }
 
   if(usesVideo()) {
+
     if(!video_enc.setup(video_settings)) {
       return false;
     }
+
+    video_enc.setStreamID(stream_id);
+
     flv_writer.setVideoCodec(FLV_VIDEOCODEC_AVC);
     flv_writer.setWidth(video_settings.width);
     flv_writer.setHeight(video_settings.height);

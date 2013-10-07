@@ -80,16 +80,15 @@ class VideoStreamer {
   void setVideoSettings(VideoSettings vs);
   void setAudioSettings(AudioSettings as);
   void setOutputFile(std::string filepath);
-  //  void setStrides(uint32_t strideY, uint32_t strideU, uint32_t strideV); /* (call before setup()) - sets the strides for the y,u,v planes on the video encoder */
   void setVideoWidth(uint16_t w); /* change the width of the video settings */
   void setVideoHeight(uint16_t h); /* change the height of the video settings */
+  void setStreamID(int32_t id); /* this is used when you're doing multi video streams and upgrade your AVPackets to MultiVideoPackets, where the AVPacket::data contains video data for all the different quality streams. You don't need to call this when you're not using multi video packets. */
 
   bool setup(); /* setup all the used members, after you've called `setServerSettings()`, `setAudioSettings()`, `setVideoSettings()` */
   bool start();
   void update(); /* call this repeadetly! necessary to handle reconnects */
   bool isStarted(); 
   bool stop();
-  //  bool shutdown();
 
   bool wantsVideo(); /* returns true when we need a new video frame, used in "direct" mode, w/o the daemon */
 
@@ -125,7 +124,9 @@ class VideoStreamer {
   uint64_t video_timeout;          /* timeout when we need a new video frame, based on the framerate */
   uint64_t video_delay;            /* delay between frames, in ns */
   uint64_t time_started;           /* time when you called `start()` in ns */
+  int32_t stream_id;               /* when you're doing multiple quality streams AND your using AVPackets which have been upgraded to multi video packets (makeMultiVideoPacket), where the AVPacket contains the data for all of the video streams, you can set the ID which is used by the video encoder, by default it's set to -1 meaning no multi streaming is used */
   std::string output_file;         /* set by setOutputFile(), will save the generated flv to a file */
+
 };
 
 // ---------------------------------
@@ -151,6 +152,10 @@ inline void VideoStreamer::setAudioSettings(AudioSettings as) {
 
 inline void VideoStreamer::setOutputFile(std::string path) {
   output_file = path;
+}
+
+inline void VideoStreamer::setStreamID(int32_t id) {
+  stream_id = id;
 }
 
 inline bool VideoStreamer::usesAudio() {
@@ -192,6 +197,7 @@ inline uint8_t VideoStreamer::getFrameRate() {
 inline uint16_t VideoStreamer::getSampleRate() {
   return audio_settings.samplerate;
 }
+
 
 /*
 inline void VideoStreamer::setStrides(uint32_t strideY, uint32_t strideU, uint32_t strideV) {

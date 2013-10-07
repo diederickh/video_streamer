@@ -21,7 +21,6 @@ set(streamer_source_files
   ${streamer_source_dir}/amf/types/AMF0String.cpp
   ${streamer_source_dir}/amf/types/AMF0Property.cpp
   ${streamer_source_dir}/amf/types/AMF0Object.cpp
-  ${streamer_source_dir}/flv/FLV.cpp
   ${streamer_source_dir}/flv/FLVReader.cpp
   ${streamer_source_dir}/flv/FLVWriter.cpp
   ${streamer_source_dir}/flv/FLVFileWriter.cpp
@@ -44,6 +43,7 @@ set(streamer_source_files
   ${streamer_source_dir}/daemon/Channel.cpp
   ${streamer_source_dir}/videostreamer/VideoStreamer.cpp
   ${streamer_source_dir}/videostreamer/VideoStreamerConfig.cpp
+  ${streamer_source_dir}/videostreamer/MultiVideoStreamer.cpp
 )
 
 set(streamer_source_dirs 

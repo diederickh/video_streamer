@@ -83,10 +83,27 @@ function setup_wowza_playback() {
     }
   });
 
-
 }
 
 
+function setup_wowza_live_playback() {
+
+  $f("wowza_live_container", "swf/flowplayer-3.2.16.swf", {
+    clip: {
+      url: "live"
+      ,live: true
+      ,provider:"rtmpd"
+    }
+    ,plugins: {
+      rtmpd: {
+        url: "swf/flowplayer.rtmp-3.2.12.swf"
+//        ,netConnectionUrl: "rtmp://test.home.roxlu.com/flvplayback/"
+        ,netConnectionUrl: "rtmp://localhost/flvplayback/"
+      }
+    }
+  });
+
+}
 
 function setup_file_playback() {
 
@@ -115,8 +132,41 @@ function setup_akamai_playback() {
       }
     }
   });
-
 }
+
+function setup_quality0_playback() {
+  $f("quality0_live_container", "swf/flowplayer-3.2.16.swf", {
+    clip: {
+      url: "quality0"
+      ,live: true
+      ,provider:"rtmpd"
+    }
+    ,plugins: {
+      rtmpd: {
+        url: "swf/flowplayer.rtmp-3.2.12.swf"
+        ,netConnectionUrl: "rtmp://test.home.roxlu.com/flvplayback/"
+      }
+    }
+  });
+}
+
+function setup_quality1_playback() {
+  $f("quality1_live_container", "swf/flowplayer-3.2.16.swf", {
+    clip: {
+      url: "quality1"
+      ,live: true
+      ,provider:"rtmpd"
+    }
+    ,plugins: {
+      rtmpd: {
+        url: "swf/flowplayer.rtmp-3.2.12.swf"
+        ,netConnectionUrl: "rtmp://test.home.roxlu.com/flvplayback/"
+      }
+    }
+  });
+}
+
+
 
 
 function video_streamer_init() {
@@ -129,6 +179,9 @@ function video_streamer_init() {
   //setup_akamai_playback();
   //setup_live_playback();
   setup_wowza_playback();
+  setup_wowza_live_playback();
+  setup_quality0_playback();
+  setup_quality1_playback();
   //setup_raw_playback();
   //setup_rtmpdump_playback();
   //setup_file_playback();

@@ -42,7 +42,18 @@
 #include <iterator>
 #include <algorithm>
 #include <vector>
+#include <map>
 #include <string>
+#include <streamer/core/Log.h>
+
+// -----------------------------------------
+
+struct MultiAVPacketInfo {     /* This struct represents the information that is necessary and used by the MultiVideoStreamer, when an AVPacket is set to AV_TYPE_MULTI_VIDEO this information is used to set the correct strides for the VideoEncoders */
+  MultiAVPacketInfo();
+
+  uint8_t* planes[3];          /* Planes for the VideoEncoder, for a specific encoder quality */
+  uint32_t strides[3];         /* Strides for the VideoEncoder, for a specific encoder quality */
+};
 
 // -----------------------------------------
 
@@ -52,11 +63,16 @@ struct AVPacket {
   AVPacket(MemoryPool* mp);     /* An AVPacket can be part of a MemoryPool, which is used to preallocate frames and reuse frames that are not used anymore but this is not necessary, pass NULL when you don't want ot use  a memory pool */
   ~AVPacket();                  /* cleans up ;-) */
   void print();                 /* print some debug info */
+
   void makeVideoPacket();
   void makeAudioPacket();
   void setTimeStamp(uint32_t ts);
-  
-  void addRef(); /* call addRef when you want to hold on to this data for a while, when ready call Release */
+
+  void makeMulti();  /* when on AVPacket contains the video data for multiple video streams, you can make it a multi video packet and set the multi strides/planes members so that the VideoEncoder will set the correct strides */
+  void clearMulti();         /* used by the multi video streamer - removes the currently set multi info members */
+  void addMulti(uint32_t streamID, MultiAVPacketInfo info); /* used by the multi video streamer - add a new multi info for the given stream */
+
+  void addRef(int count = 1); /* call addRef when you want to hold on to this data for a while, when ready call Release */
   void release();  /* call Release when you don't use this packet anymore, so the memory pool can reuse  it */
   
   void copy(uint8_t* buf, size_t nbytes); /* copy the given bytes to `data` */
@@ -69,6 +85,9 @@ struct AVPacket {
   uint32_t strides[3];           /* strides of the Y,U,V planes in `data` */
   MemoryPool* memory_pool;       /* the memory pool to which this packet belongs */
   uint32_t refcount;             /* when addRef() is called this gets incremented, release() decrements it  (through memory pool) */
+
+  bool is_multi;                 /* set to true when makeMultiVideoPacket() has been called, this is necessary for the multi video streamer */
+  std::map<uint32_t, MultiAVPacketInfo> multi_info; /* used by the multi video streamer */
 };
 
 // -----------------------------------------
@@ -120,12 +139,35 @@ inline void AVPacket::makeVideoPacket() {
   type = AV_TYPE_VIDEO;
 }
 
+
 inline void AVPacket::setTimeStamp(uint32_t ts) {
   timestamp = ts;
 }
 
 inline void AVPacket::copy(uint8_t* buf, size_t nbytes) {
   std::copy(buf, buf+nbytes, std::back_inserter(data));
+}
+
+inline void AVPacket::makeMulti() {
+  type = AV_TYPE_VIDEO;
+  is_multi = true;
+}
+
+inline void AVPacket::clearMulti() {
+  multi_info.clear();
+}
+
+inline void AVPacket::addMulti(uint32_t streamID, MultiAVPacketInfo info) {
+
+#if !defined(NDEBUG)
+  std::map<uint32_t, MultiAVPacketInfo>::iterator it = multi_info.find(streamID);
+  if(it != multi_info.end()) {
+    STREAMER_ERROR("You're trying to add multi info to a AVPacket for the info already exists for the given stream: %d. Make sure that you first call clearMulti()!\n", streamID);
+    ::exit(EXIT_FAILURE);
+  }
+#endif  
+
+  multi_info[streamID] = info;
 }
 
 

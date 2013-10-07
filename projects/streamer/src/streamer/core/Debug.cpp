@@ -1,4 +1,5 @@
 #include <streamer/core/Debug.h>
+#include <streamer/core/Log.h>
 
 std::string flv_soundformat_to_string(uint8_t t) {
   switch(t) {
@@ -116,83 +117,109 @@ void flv_print_tag(FLVTag& tag) {
 
 void print_x264_params(x264_param_t* p) {
  
-  printf("--\n");
-  printf("x264_param_t.i_threads: %d\n", p->i_threads);
-  printf("x264_param_t.i_lookahead_threads: %d\n", p->i_lookahead_threads);
-  printf("x264_param_t.b_sliced_threads: %d\n", p->b_sliced_threads);
-  printf("x264_param_t.b_deterministic: %d \n", p->b_deterministic);
-  printf("x264_param_t.b_cpu_independent: %d \n", p->b_cpu_independent);
-  printf("x264_param_t.i_sync_lookahead: %d\n", p->i_sync_lookahead);
-  printf("x264_param_t.i_width: %d\n", p->i_width);
-  printf("x264_param_t.i_height: %d\n", p->i_height);
-  printf("x264_param_t.i_csp: %d \n", p->i_csp);
-  printf("x264_param_t.i_level_idc: %d\n", p->i_level_idc);
-  printf("x264_param_t.i_frame_total: %d \n", p->i_frame_total);
-  printf("x264_param_t.i_nal_hrd: %d \n", p->i_nal_hrd);
+  STREAMER_VERBOSE("--\n");
+  STREAMER_VERBOSE("x264_param_t.i_threads: %d\n", p->i_threads);
+  STREAMER_VERBOSE("x264_param_t.i_lookahead_threads: %d\n", p->i_lookahead_threads);
+  STREAMER_VERBOSE("x264_param_t.b_sliced_threads: %d\n", p->b_sliced_threads);
+  STREAMER_VERBOSE("x264_param_t.b_deterministic: %d \n", p->b_deterministic);
+  STREAMER_VERBOSE("x264_param_t.b_cpu_independent: %d \n", p->b_cpu_independent);
+  STREAMER_VERBOSE("x264_param_t.i_sync_lookahead: %d\n", p->i_sync_lookahead);
+  STREAMER_VERBOSE("x264_param_t.i_width: %d\n", p->i_width);
+  STREAMER_VERBOSE("x264_param_t.i_height: %d\n", p->i_height);
+  STREAMER_VERBOSE("x264_param_t.i_csp: %d \n", p->i_csp);
+  STREAMER_VERBOSE("x264_param_t.i_level_idc: %d\n", p->i_level_idc);
+  STREAMER_VERBOSE("x264_param_t.i_frame_total: %d \n", p->i_frame_total);
+  STREAMER_VERBOSE("x264_param_t.i_nal_hrd: %d \n", p->i_nal_hrd);
 
   // skipping vui
-  printf("--\n");
-  printf("x264_param_t.i_frame_reference: %d\n", p->i_frame_reference);
-  printf("x264_param_t.i_dpb_size: %d \n", p->i_dpb_size);
-  printf("x264_param_t.i_keyint_max: %d \n", p->i_keyint_max);
-  printf("x264_param_t.i_keyint_min: %d \n", p->i_keyint_min);
-  printf("x264_param_t.i_scenecut_threshold: %d: \n", p->i_scenecut_threshold);
-  printf("x264_param_t.b_intra_refresh: %d\n", p->b_intra_refresh);
-  printf("x264_param_t.i_bframe: %d\n", p->i_bframe);
-  printf("x264_param_t.i_bframe_adaptive: %d\n", p->i_bframe_adaptive);
+  STREAMER_VERBOSE("--\n");
+  STREAMER_VERBOSE("x264_param_t.i_frame_reference: %d\n", p->i_frame_reference);
+  STREAMER_VERBOSE("x264_param_t.i_dpb_size: %d \n", p->i_dpb_size);
+  STREAMER_VERBOSE("x264_param_t.i_keyint_max: %d \n", p->i_keyint_max);
+  STREAMER_VERBOSE("x264_param_t.i_keyint_min: %d \n", p->i_keyint_min);
+  STREAMER_VERBOSE("x264_param_t.i_scenecut_threshold: %d: \n", p->i_scenecut_threshold);
+  STREAMER_VERBOSE("x264_param_t.b_intra_refresh: %d\n", p->b_intra_refresh);
+  STREAMER_VERBOSE("x264_param_t.i_bframe: %d\n", p->i_bframe);
+  STREAMER_VERBOSE("x264_param_t.i_bframe_adaptive: %d\n", p->i_bframe_adaptive);
 
   // skipping a lot..
-  printf("--\n");
-  printf("x264_param_t.i_rc_method: %d\n", p->rc.i_rc_method);
-  printf("x264_param_t.i_qp_constant: %d\n", p->rc.i_qp_constant);
-  printf("x264_param_t.i_qp_min: %d\n", p->rc.i_qp_min);
-  printf("x264_param_t.i_qp_max: %d \n", p->rc.i_qp_max);
-  printf("x264_param_t.i_qp_step: %d \n", p->rc.i_qp_step);
-  printf("x264_param_t.i_bitrate: %d \n", p->rc.i_bitrate);
+  STREAMER_VERBOSE("--\n");
+  STREAMER_VERBOSE("x264_param_t.i_rc_method: %d\n", p->rc.i_rc_method);
+  STREAMER_VERBOSE("x264_param_t.i_qp_constant: %d\n", p->rc.i_qp_constant);
+  STREAMER_VERBOSE("x264_param_t.i_qp_min: %d\n", p->rc.i_qp_min);
+  STREAMER_VERBOSE("x264_param_t.i_qp_max: %d \n", p->rc.i_qp_max);
+  STREAMER_VERBOSE("x264_param_t.i_qp_step: %d \n", p->rc.i_qp_step);
+  STREAMER_VERBOSE("x264_param_t.i_bitrate: %d \n", p->rc.i_bitrate);
 
   // skipping .. 
-  printf("--\n");
-  printf("x264_param_t.b_aud: %d\n", p->b_aud);
-  printf("x264_param_t.b_repeat_headers: %d \n", p->b_repeat_headers);
-  printf("x264_param_t.b_annexb: %d (flv does not support annexb)\n", p->b_annexb);
-  printf("x264_param_t.i_sps_id: %d \n", p->i_sps_id);
-  printf("x264_param_t.b_vfr_input: %d\n", p->b_vfr_input);
-  printf("x264_param_t.b_pulldown: %d\n", p->b_pulldown);
-  printf("x264_param_t.i_fps_num: %d\n", p->i_fps_num);
-  printf("x264_param_t.i_fps_den: %d\n", p->i_fps_den);
-  printf("x264_param_t.i_timebase_num: %d \n", p->i_timebase_num);
-  printf("x264_param_t.i_timebase_den: %d\n", p->i_timebase_den);
-  printf("-------------------------------------------------------------\n");
+  STREAMER_VERBOSE("--\n");
+  STREAMER_VERBOSE("x264_param_t.b_aud: %d\n", p->b_aud);
+  STREAMER_VERBOSE("x264_param_t.b_repeat_headers: %d \n", p->b_repeat_headers);
+  STREAMER_VERBOSE("x264_param_t.b_annexb: %d (flv does not support annexb)\n", p->b_annexb);
+  STREAMER_VERBOSE("x264_param_t.i_sps_id: %d \n", p->i_sps_id);
+  STREAMER_VERBOSE("x264_param_t.b_vfr_input: %d\n", p->b_vfr_input);
+  STREAMER_VERBOSE("x264_param_t.b_pulldown: %d\n", p->b_pulldown);
+  STREAMER_VERBOSE("x264_param_t.i_fps_num: %d\n", p->i_fps_num);
+  STREAMER_VERBOSE("x264_param_t.i_fps_den: %d\n", p->i_fps_den);
+  STREAMER_VERBOSE("x264_param_t.i_timebase_num: %d \n", p->i_timebase_num);
+  STREAMER_VERBOSE("x264_param_t.i_timebase_den: %d\n", p->i_timebase_den);
+  STREAMER_VERBOSE("-------------------------------------------------------------\n");
 
 }
 
 void print_nal_unit(NalUnit* nu) {
-  printf("nal.forbidden_zero_bit: %d\n", nu->forbidden_zero_bit);
-  printf("nal.nal_ref_idc: %d\n", nu->nal_ref_idc);
-  printf("nal.nal_unit_type: %d\n", nu->nal_unit_type);
+  STREAMER_VERBOSE("nal.forbidden_zero_bit: %d\n", nu->forbidden_zero_bit);
+  STREAMER_VERBOSE("nal.nal_ref_idc: %d\n", nu->nal_ref_idc);
+  STREAMER_VERBOSE("nal.nal_unit_type: %d\n", nu->nal_unit_type);
   print_nal_sps(nu->sps);
-  printf("-------------------------------------------------------------\n");
+  STREAMER_VERBOSE("-------------------------------------------------------------\n");
 }
 
 void print_nal_sps(nal_sps& n) {
-  printf("sps.profile_idc: %d\n", n.profile_idc);
-  printf("sps.constraint_set0_flag: %d\n", n.constraint_set0_flag);
-  printf("sps.constraint_set1_flag: %d\n", n.constraint_set1_flag);
-  printf("sps.constraint_set2_flag: %d\n", n.constraint_set2_flag);
-  printf("sps.constraint_set3_flag: %d\n", n.constraint_set3_flag);
-  printf("sps.constraint_set4_flag: %d\n", n.constraint_set4_flag);
-  printf("sps.constraint_set5_flag: %d\n", n.constraint_set5_flag);
-  printf("sps.reserved_zero_2bits: %d\n", n.reserved_zero_2bits);
-  printf("sps.level_idc: %d\n", n.level_idc);
+  STREAMER_VERBOSE("sps.profile_idc: %d\n", n.profile_idc);
+  STREAMER_VERBOSE("sps.constraint_set0_flag: %d\n", n.constraint_set0_flag);
+  STREAMER_VERBOSE("sps.constraint_set1_flag: %d\n", n.constraint_set1_flag);
+  STREAMER_VERBOSE("sps.constraint_set2_flag: %d\n", n.constraint_set2_flag);
+  STREAMER_VERBOSE("sps.constraint_set3_flag: %d\n", n.constraint_set3_flag);
+  STREAMER_VERBOSE("sps.constraint_set4_flag: %d\n", n.constraint_set4_flag);
+  STREAMER_VERBOSE("sps.constraint_set5_flag: %d\n", n.constraint_set5_flag);
+  STREAMER_VERBOSE("sps.reserved_zero_2bits: %d\n", n.reserved_zero_2bits);
+  STREAMER_VERBOSE("sps.level_idc: %d\n", n.level_idc);
 }
 
 void print_decoder_configuration_record(AVCDecoderConfigurationRecord* r) {
-  printf("cfg.configuration_version: %d\n", r->configuration_version);
-  printf("cfg.avc_profile_indication: %d\n", r->avc_profile_indication);
-  printf("cfg.profile_compatiblity: %d\n", r->profile_compatibility);
-  printf("cfg.avc_level_indication: %d\n", r->avc_level_indication);
-  printf("cfg.nal_size_length_minus_one: %02X\n", r->nal_size_length_minus_one);
-  printf("cfg.number_of_sps: %d\n", r->number_of_sps);
-  printf("cfg.number_of_pps: %d\n", r->number_of_pps);
-  printf("-------------------------------------------------------------\n");
+  STREAMER_VERBOSE("cfg.configuration_version: %d\n", r->configuration_version);
+  STREAMER_VERBOSE("cfg.avc_profile_indication: %d\n", r->avc_profile_indication);
+  STREAMER_VERBOSE("cfg.profile_compatiblity: %d\n", r->profile_compatibility);
+  STREAMER_VERBOSE("cfg.avc_level_indication: %d\n", r->avc_level_indication);
+  STREAMER_VERBOSE("cfg.nal_size_length_minus_one: %02X\n", r->nal_size_length_minus_one);
+  STREAMER_VERBOSE("cfg.number_of_sps: %d\n", r->number_of_sps);
+  STREAMER_VERBOSE("cfg.number_of_pps: %d\n", r->number_of_pps);
+  STREAMER_VERBOSE("-------------------------------------------------------------\n");
+}
+
+std::string av_audio_samplerate_to_string(uint32_t t) {
+  switch(t) {
+    case AV_AUDIO_SAMPLERATE_11025: return "11025";
+    case AV_AUDIO_SAMPLERATE_22050: return "22050";
+    case AV_AUDIO_SAMPLERATE_44100: return "44100";
+    default: return "AV_AUDIO_SAMPLERATE_UNKNOWN"; 
+  }
+}
+
+std::string av_audio_mode_to_string(uint32_t t) {
+  switch(t) {
+    case AV_AUDIO_MODE_MONO: return "AV_AUDIO_MODE_MONO"; 
+    case AV_AUDIO_MODE_STEREO: return "AV_AUDIO_MODE_STEREO";
+    default: return "AV_AUDIO_MODE_UNKNOWN";
+  }
+}
+
+std::string av_audio_bitsize_to_string(uint32_t t) {
+  switch(t) {
+    case AV_AUDIO_BITSIZE_S8: return "AV_AUDIO_BITSIZE_S8";
+    case AV_AUDIO_BITSIZE_S16: return "AV_AUDIO_BITSIZE_S16";
+    case AV_AUDIO_BITSIZE_F32: return "AV_AUDIO_BITSIZE_F32";
+    default: return "AV_AUDIO_BITSIZE_UNKNOWN";
+  }
 }

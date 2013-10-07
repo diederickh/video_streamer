@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<videostreamer>
+  <settings>
+    <default_stream_id>0</default_stream_id>
+  </settings>
+  <streams>
+
+    <!-- Primary quality stream -->
+    <stream>
+      <id>0</id>
+      <server>
+        <url>rtmp://127.0.0.1/flvplayback/quality0</url>
+      </server>
+      <video>
+        <width>640</width>
+        <height>360</height>
+        <fps>15</fps>
+        <bitrate>500</bitrate>
+        <threads>2</threads>
+      </video>
+      <audio>
+        <samplerate>44100</samplerate>  <!-- samplerate: 44100, 22050, 11025 -->
+        <mode>2</mode> <!-- mode: mono = 1, stereo = 2 -->
+        <bitsize>2</bitsize> <!-- bitsize: S8 = 0, S16 = 2, F32 = 3 -->
+        <bitrate>64</bitrate> <!-- in kbps -->
+        <quality>4</quality>
+        <in_bitsize>0</in_bitsize>
+        <in_interleaved>1</in_interleaved>
+      </audio>
+    </stream>
+
+    <!-- Secondary quality stream -->
+    <stream>
+      <id>1</id>
+      <server>
+        <url>rtmp://127.0.0.1/flvplayback/quality1</url>
+      </server>
+      <video>
+        <width>320</width>
+        <height>180</height>
+        <fps>15</fps>
+        <bitrate>150</bitrate>
+        <threads>2</threads>
+      </video>
+      <audio>
+        <samplerate>44100</samplerate>  <!-- samplerate: 44100, 22050, 11025 -->
+        <mode>2</mode> <!-- mode: mono = 1, stereo = 2 -->
+        <bitsize>2</bitsize> <!-- bitsize: S8 = 0, S16 = 2, F32 = 3 -->
+        <bitrate>64</bitrate> <!-- in kbps -->
+        <quality>4</quality>
+        <in_bitsize>0</in_bitsize>
+        <in_interleaved>1</in_interleaved>
+      </audio>
+    </stream>
+
+  </streams>
+</videostreamer>

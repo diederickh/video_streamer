@@ -1,5 +1,6 @@
 #include <streamer/core/H264Parser.h>
 #include <streamer/core/Debug.h>
+#include <streamer/core/Log.h>
 
 // ------------------------------------------------
 nal_sps::nal_sps() 
@@ -36,7 +37,7 @@ H264Parser::H264Parser(uint8_t* nal)
 
 bool H264Parser::parse() {
   if(!nal) {
-    printf("error: cannot parse h264, no nal unit set. %p\n", nal);
+    STREAMER_ERROR("error: cannot parse h264, no nal unit set. %p\n", nal);
     return false;
   }
 
@@ -47,13 +48,13 @@ bool H264Parser::parse() {
 
   int num_header_bytes = 1;
   if(nu.nal_unit_type == 14 || nu.nal_unit_type == 20 || nu.nal_unit_type == 21) {
-    printf("warning: not handling unit type 14, 20 or 21 yet.\n");
+    STREAMER_ERROR("warning: not handling unit type 14, 20 or 21 yet.\n");
     // num_header_bytes = ...
     return false;
   }
   
   for(int i = 0; i < num_header_bytes; ++i) {
-    printf("h264 parser, warning: need to read the header bytes! %d\n", num_header_bytes);
+    STREAMER_VERBOSE("h264 parser, warning: need to read the header bytes! %d\n", num_header_bytes);
   }
   
   switch(nu.nal_unit_type) {
@@ -62,7 +63,7 @@ bool H264Parser::parse() {
       break;
     }
     default: { 
-      printf("error: unhandled nal type.\n");
+      STREAMER_ERROR("error: unhandled nal type.\n");
       break;
     }
   }

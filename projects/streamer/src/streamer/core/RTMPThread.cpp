@@ -9,6 +9,7 @@ extern "C" {
 #include <iostream>
 #include <streamer/core/RTMPThread.h>
 #include <streamer/core/RTMPWriter.h>
+#include <streamer/core/Log.h>
 #include <streamer/flv/FLVWriter.h>
 
 // ---------------------------------------------------
@@ -59,7 +60,7 @@ void rtmp_thread_func(void* user) {
 #endif
 
       if(!pkt->data.size()) {
-        printf("error: zero sized packed!\n");
+        STREAMER_ERROR("error: zero sized packed!\n");
         ::exit(EXIT_FAILURE);
       }
 
@@ -72,7 +73,7 @@ void rtmp_thread_func(void* user) {
       bitrate_now = uv_hrtime();
       if(bitrate_now > bitrate_timeout) {
         bitrate_kbps = ((bytes_written * 8) / 1000.0) / ((uv_hrtime() - bitrate_time_started) / 1000000000); //  / ((uv_hrtime() - bitrate_time_started)); // in millis
-        printf("-- kbps: %0.2f, bytes processed: %f \n", bitrate_kbps, double(bytes_written/(1024.0 * 1024.0)));
+        STREAMER_VERBOSE("-- kbps: %0.2f, bytes processed: %f \n", bitrate_kbps, double(bytes_written/(1024.0 * 1024.0)));
         bitrate_timeout = bitrate_now + bitrate_delay;
       }
 
@@ -112,7 +113,7 @@ RTMPThread::~RTMPThread() {
 bool RTMPThread::start() {
 
   if(state == RTMP_STATE_STARTED) {
-    printf("error: canot start the rtmp thread because we're already running.\n");
+    STREAMER_ERROR("error: canot start the rtmp thread because we're already running.\n");
     return false;
   }
 
@@ -125,7 +126,7 @@ bool RTMPThread::start() {
 bool RTMPThread::stop() {
 
   if(state != RTMP_STATE_STARTED) {
-    printf("error: cannot stop the rtmp state because we're not running.\n");
+    STREAMER_ERROR("error: cannot stop the rtmp state because we're not running.\n");
     return false;
   }
 
@@ -145,7 +146,7 @@ void RTMPThread::addPacket(RTMPData* pkt) {
   
 #if !defined(NDEBUG)
   if(pkt->type == RTMP_DATA_TYPE_NONE) {
-    printf("error: the RTMPData packet has an invalid type (RTMP_DATA_TYPE_NONE) (RTMPThread)");
+    STREAMER_ERROR("error: the RTMPData packet has an invalid type (RTMP_DATA_TYPE_NONE) (RTMPThread)");
     ::exit(EXIT_FAILURE);
   }
 #endif

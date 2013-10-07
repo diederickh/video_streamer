@@ -599,6 +599,10 @@ void YUV420PGrabber::assignFrame(size_t id,
   strides[2] = size.v_stride;
 }
 
+void YUV420PGrabber::assignPixels(std::vector<uint8_t>& pixels) {
+  pixels.assign(getPtr(), getPtr() + getNumBytes());
+}
+
 // planes should be big enough to hold 3 planes 
 void YUV420PGrabber::assignPlanes(size_t id, std::vector<uint8_t>& pixels, uint8_t* planes[]) {
   YUV420PSize size = getSize(id);

@@ -7,7 +7,7 @@
     <stream>
       <id>0</id>
       <server>
-        <url>rtmp://127.0.0.1/flvplayback/livestream</url>
+        <url>rtmp://127.0.0.1/flvplayback/live</url>
       </server>
       <video>
         <width>320</width>

@@ -236,7 +236,7 @@ class YUV420PGrabber {
  public:
   YUV420PGrabber();
   ~YUV420PGrabber();
-  void addSize(int id, int w, int h); /* the id identifies this size and this id can be used with getImage(..) to retrieve pointers to this image */
+  bool addSize(int id, int w, int h); /* the id identifies this size and this id can be used with getImage(..) to retrieve pointers to this image */
   YUV420PSize getSize(int id); /* get the size info object for the given image ID, make sure you have called setup() fist! */
   bool setup(int winW, int winH, int fps); /* , int videoW, int videoH, int fps); */
   void beginGrab();
@@ -249,6 +249,7 @@ class YUV420PGrabber {
 
   /* getting the frame data */
   void assignFrame(size_t id, std::vector<uint8_t>& pixels, uint8_t* planes[], uint32_t* strides); /* moves over the current frame into the given vector and sets the plane pointers + strides. pixels MUST be big enough to handle the data! */
+  void assignPixels(std::vector<uint8_t>& pixels); /* this simple moves all the pixel data for all the added sizes into the given vector, we assume the vector has enough space */
   void assignPlanes(size_t id, std::vector<uint8_t>& pixels, uint8_t* planes[]); /* this function will assign the plane pointers into the given planes array. The pointers will point to the data in the given vector and for the given size ID. This is used to set the planes member of a AVPacket */
   void assignStrides(size_t id, uint32_t* strides); /* this function will assign the strides for the given size, this is used to setup the  strides member of the AVPacket.*/
   unsigned char* getPtr(); /* get ptr to the image data */
@@ -340,9 +341,13 @@ inline unsigned char* YUV420PGrabber::getPtr() {
   return image;
 }
 
-inline void YUV420PGrabber::addSize(int id, int w, int h) {
-  assert(w && h);
-  printf("- w: %d, h: %d\n", w, h);
+inline bool YUV420PGrabber::addSize(int id, int w, int h) {
+
+  if(!w || !h) {
+    printf("Cannot add the size in YUV420PGrabber::addSize(), because the width or height is invalid: %d x %d\n", w, h);
+    return false;
+  }
+
   YUV420PSize s;
   s.yw = w;
   s.yh = h;
@@ -351,6 +356,8 @@ inline void YUV420PGrabber::addSize(int id, int w, int h) {
 
   s.id = id;
   sizes.push_back(s);
+
+  return true;
 }
 
 inline YUV420PSize YUV420PGrabber::getSize(int id) {
@@ -360,7 +367,7 @@ inline YUV420PSize YUV420PGrabber::getSize(int id) {
       return s;
     }
   }
-  printf("error: size with id `%d` not found.\n", id);
+  printf("Size with id `%d` not found.\n", id);
   ::exit(EXIT_FAILURE);
 }
 

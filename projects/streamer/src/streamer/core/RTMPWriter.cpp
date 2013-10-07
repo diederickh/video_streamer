@@ -1,11 +1,12 @@
 #include <signal.h>
 #include <iostream>
 #include <streamer/core/RTMPWriter.h>
+#include <streamer/core/Log.h>
 
 // ---------------------------------------------------
 
 void rtmp_sigpipe_handler(int signum) {
-  printf("got sigpipe!\n");
+  STREAMER_ERROR("rtmpwriter: got sigpipe, the remote server probably shut down.\n");
 }
 
 // ---------------------------------------------------
@@ -56,30 +57,30 @@ RTMPWriter::~RTMPWriter() {
 bool RTMPWriter::initialize() {
 
   if(!settings.url.size()) {
-    printf("error: cannot initialize the RTMP Writer, no url set, call setURL() first.\n");
+    STREAMER_ERROR("error: cannot initialize the RTMP Writer, no url set, call setURL() first.\n");
     return false;
   }
 
   if(state == RW_STATE_INITIALIZED) {
-    printf("error: already initialized.\n");
+    STREAMER_ERROR("error: already initialized.\n");
     return false;
   }
 
   if(rtmp) {
-    printf("error: already initialized a rtmp context, not creating another one!\n");
+    STREAMER_ERROR("error: already initialized a rtmp context, not creating another one!\n");
     ::exit(EXIT_FAILURE);
   }
 
   rtmp = RTMP_Alloc();
   if(!rtmp) {
-    printf("error: cannot allocate the rtmp context.\n");
+    STREAMER_ERROR("error: cannot allocate the rtmp context.\n");
     ::exit(EXIT_FAILURE);
   }
 
   RTMP_Init(rtmp);
 
   if(!RTMP_SetupURL(rtmp, (char*)settings.url.c_str())) {
-    printf("error: cannot setup the url for the RTMP Writer.\n");
+    STREAMER_ERROR("error: cannot setup the url for the RTMP Writer.\n");
     RTMP_Free(rtmp);
     rtmp = NULL;
     return false;
@@ -101,28 +102,19 @@ bool RTMPWriter::initialize() {
   RTMP_EnableWrite(rtmp);
 
   if(!RTMP_Connect(rtmp, NULL)) {
-    printf("error: cannot connect to the rtmp server: %s\n", settings.url.c_str());
+    STREAMER_ERROR("error: cannot connect to the rtmp server: %s\n", settings.url.c_str());
     RTMP_Free(rtmp);
     rtmp = NULL;
-    /*
-    if(state == RW_STATE_RECONNECTING) {
-      state = RW_STATE_NONE;
-      printf("@todo need to call the disconnect callback.\n");
-      //reconnect(); 
-     }
-    */
-
     return false;
   }
 
   if(!RTMP_ConnectStream(rtmp, 0)) {
-    printf("error: cannot connect to the rtmp stream on %s.\n", settings.url.c_str());
+    STREAMER_ERROR("error: cannot connect to the rtmp stream on %s.\n", settings.url.c_str());
     RTMP_Free(rtmp);
     rtmp = NULL;
 
     if(state == RW_STATE_RECONNECTING) {
       state = RW_STATE_NONE;
-      // reconnect(); 
     }
 
     return false;
@@ -136,7 +128,7 @@ bool RTMPWriter::initialize() {
 void RTMPWriter::write(uint8_t* data, size_t nbytes) {
 
   if(state == RW_STATE_NONE) {
-    printf("error: cannot write to rtmp server because we haven't been initialized. did you call initialize()?\n");
+    STREAMER_ERROR("error: cannot write to rtmp server because we haven't been initialized. did you call initialize()?\n");
     return;
   }
   else if(state == RW_STATE_RECONNECTING) {
@@ -157,7 +149,7 @@ void RTMPWriter::write(uint8_t* data, size_t nbytes) {
     RTMP_Free(rtmp);
     rtmp = NULL;
 
-    printf("error: something went wrong while trying to write data to the rtmp server.\n");
+    STREAMER_ERROR("error: something went wrong while trying to write data to the rtmp server.\n");
     if(state == RW_STATE_DISCONNECTED) {
       return;
     }
@@ -176,7 +168,7 @@ void RTMPWriter::write(uint8_t* data, size_t nbytes) {
 void RTMPWriter::reconnect() {
 
   if(state == RW_STATE_RECONNECTING) {
-    printf("warning: already reconnecting ....");
+    STREAMER_WARNING("warning: already reconnecting ....");
     return;
   }
 
@@ -201,12 +193,12 @@ void RTMPWriter::close() {
 void RTMPWriter::read() {
 
   if(state != RW_STATE_INITIALIZED) {
-    printf("error: cannot read because we're not initialized.\n");
+    STREAMER_ERROR("error: cannot read because we're not initialized.\n");
     return;
   }
 
   char buf[512];
   int r = RTMP_Read(rtmp, buf, sizeof(buf));
-  printf("read: >> %d << \n", r);
+  STREAMER_VERBOSE("read: >> %d << \n", r);
 
 }

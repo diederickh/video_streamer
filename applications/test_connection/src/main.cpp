@@ -37,10 +37,7 @@ bool must_run = false;
 void sighandler(int signum);
 
 int main() {
-  STREAMER_VERBOSE("Works nicely!");
-  STREAMER_WARNING("Warginnig!");
-  STREAMER_ERROR("oops something went wrong..");
-  ::exit(0);
+
   std::string settings_file = rx_get_exe_path() +"connection_test.xml";
   if(!vs.loadSettings(settings_file)) {
     STREAMER_ERROR("error: cannot find the connection_test.xml file: %s.", settings_file.c_str());

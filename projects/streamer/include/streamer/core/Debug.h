@@ -36,6 +36,7 @@ extern "C" {
 #include <string>
 #include <streamer/flv/FLVTypes.h>
 #include <streamer/core/H264Parser.h>
+#include <streamer/core/EncoderTypes.h>
 
 std::string flv_tagtype_to_string(uint8_t t);
 std::string flv_soundformat_to_string(uint8_t t);
@@ -51,5 +52,9 @@ void print_nal_unit(NalUnit* nu);
 void print_nal_sps(nal_sps& n);
 void print_decoder_configuration_record(AVCDecoderConfigurationRecord* r);
 
+/* debug for EncoderTypes.h defines */
+std::string av_audio_samplerate_to_string(uint32_t t);
+std::string av_audio_mode_to_string(uint32_t t);
+std::string av_audio_bitsize_to_string(uint32_t t);
 
 #endif
