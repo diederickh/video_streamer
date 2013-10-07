@@ -37,6 +37,7 @@ set(streamer_source_files
   ${streamer_source_dir}/core/RTMPWriter.cpp
   ${streamer_source_dir}/core/EncoderThread.cpp
   ${streamer_source_dir}/core/RTMPThread.cpp
+  ${streamer_source_dir}/core/Log.cpp
   ${streamer_source_dir}/daemon/Daemon.cpp
   ${streamer_source_dir}/daemon/DaemonConfig.cpp
   ${streamer_source_dir}/daemon/Runner.cpp

@@ -21,6 +21,7 @@
 #include <streamer/videostreamer/VideoStreamer.h>
 #include <streamer/core/TestPattern.h>
 #include <streamer/core/MemoryPool.h>
+#include <streamer/core/Log.h>
 
 #if MIC_IN
 #  include <portaudio/PAudio.h>
@@ -36,10 +37,13 @@ bool must_run = false;
 void sighandler(int signum);
 
 int main() {
-  
+  STREAMER_VERBOSE("Works nicely!");
+  STREAMER_WARNING("Warginnig!");
+  STREAMER_ERROR("oops something went wrong..");
+  ::exit(0);
   std::string settings_file = rx_get_exe_path() +"connection_test.xml";
   if(!vs.loadSettings(settings_file)) {
-    printf("error: cannot find the connection_test.xml file: %s. \n", settings_file.c_str());
+    STREAMER_ERROR("error: cannot find the connection_test.xml file: %s.", settings_file.c_str());
     ::exit(EXIT_FAILURE);
   }
 
@@ -57,10 +61,10 @@ int main() {
   PAudio paudio;
   paudio.listDevices();
   if(!paudio.openInputStream(paudio.getDefaultInputDevice(), 2, paInt16, 44100, 512)) {
-    printf("error: cannot set port audio.\n");
+    STREAMER_ERROR("error: cannot set port audio.");
     ::exit(EXIT_FAILURE);
   }
-  printf("Using input audio device: %d\n", paudio.getDefaultInputDevice());
+  STREAMER_VERBOSE("Using input audio device: %d.", paudio.getDefaultInputDevice());
 
   paudio.setCallback(on_audio_in, NULL);
 
@@ -72,12 +76,11 @@ int main() {
 
 
   if(!tp.setup(vs.getVideoWidth(), vs.getVideoHeight(), vs.getFrameRate(), vs.getSampleRate())) {
-    printf("error: cannot setup the test pattern.\n");
+    STREAMER_ERROR("error: cannot setup the test pattern.");
     ::exit(EXIT_FAILURE);
   }
 
-  printf("Loaded streamer with: %d x %d @ %d, samplerate: %d\n", vs.getVideoWidth(), vs.getVideoHeight(), vs.getFrameRate(), vs.getSampleRate());
-
+  STREAMER_VERBOSE("Loaded streamer with: %d x %d @ %d, samplerate: %d.", vs.getVideoWidth(), vs.getVideoHeight(), vs.getFrameRate(), vs.getSampleRate());
   
   mempool.allocateVideoFrames(10, tp.getNumVideoBytes());
   mempool.allocateAudioFrames(512, tp.getNumAudioBytes());
@@ -125,7 +128,7 @@ int main() {
         vs.addAudio(au_pkt);
       }
       else {
-        printf("error: cannot get new audio frame.\n");
+        STREAMER_ERROR("error: cannot get new audio frame.");
       }
     }
 #endif
@@ -142,7 +145,7 @@ int main() {
 
 
 void sighandler(int signum) {
-  printf("\nStop!\n");
+  STREAMER_WARNING("\nStop!\n");
   must_run = false;
 }
 
