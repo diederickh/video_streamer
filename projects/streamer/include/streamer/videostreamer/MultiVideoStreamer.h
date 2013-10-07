@@ -83,6 +83,8 @@ class MultiVideoStreamer {
   bool loadSettings(std::string filepath); /* call before setup() - load the settings where you define all of the stream properties */
   bool setup(); /* after you've called loadSettings(), call setup() to setup all the streams and allocate the instances we need*/
   bool start(); /* this will start all the streams */
+  void update(); /* call this regurlarly - it will make sure that we reconnect to the streaming server when we get disconncted */
+  bool stop(); /* stop all the streams! */
   void shutdown(); /* deallocates all allocated memory from start(). */
   void print(); /* print debug information about the different qualities we've got */
   void addVideo(AVPacket* pkt); /* add video - make sure to set the timestamp! - DO NOT ADD ANY EXTRA REFERENCE COUNTERS! WE ADD THE REFCOUNTS FOR YOU! - BY DEFAULT AN AVPACKET HAS A REFCOUNT OF 1 WHEN RETURNED FROM THE FREE PACKETS IN A MEMORY POOL, WE WILL INCREASE THIS NUMBER BY THE NECESSARY AMOUNT! */
@@ -104,6 +106,13 @@ inline MultiStreamerInfo* MultiVideoStreamer::operator[](unsigned int dx) {
 #else
   return streamers[dx];
 #endif
+}
+
+inline void MultiVideoStreamer::update() {
+  for(std::vector<MultiStreamerInfo*>::iterator it = streamers.begin(); it != streamers.end(); ++it) {
+    MultiStreamerInfo* msi = *it;
+    msi->streamer->update();
+  }
 }
 
 #endif

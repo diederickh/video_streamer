@@ -51,6 +51,7 @@
 
 extern "C" {
 #  include <lame/lame.h>
+#  include <uv.h>
 }
 
 #include <fstream>
@@ -74,6 +75,14 @@ class AudioEncoder {
   MPEG_mode mode;
   lame_global_flags* lame_flags;
   uint8_t mp3_buffer[AUDIO_ENCODER_BUFFER_SIZE];
+
+  /* used to monitor bitrate */
+  uint64_t bitrate_time_started; /* when we started with encoding, in nanosec. we've put this in setup() because we don't want to add a check in encodePacket(), this result in a bit less accurate value for the first run. */
+  uint64_t bitrate_timeout;  /* when we should calculate the current bitrate again */
+  uint64_t bitrate_delay; /* the time between bitrate measurements, in nanosec */
+  double bitrate_in_kbps; /* the current bitrate we measured last delay */
+  double bitrate_nbytes; /* the total amount of transferred bytes */
+  
 };
 
 #endif

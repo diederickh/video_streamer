@@ -2,9 +2,10 @@
 #include <iostream>
 #include <streamer/videostreamer/VideoStreamer.h>
 #include <streamer/videostreamer/VideoStreamerConfig.h>
+#include <streamer/core/Log.h>
 
 void videostreamer_on_rtmp_disconnect(RTMPWriter* rtmp, void* user) {
-  printf("rtmpwriter - got disconnected.\n");
+  STREAMER_ERROR("The RTMPWriter got disconnected.\n");
   VideoStreamer* vs = static_cast<VideoStreamer*>(user);
   vs->state = VS_STATE_DISCONNECTED;
 }
@@ -43,7 +44,7 @@ VideoStreamer::~VideoStreamer() {
 bool VideoStreamer::loadSettings(std::string filepath) {
 
   if(!filepath.size()) {
-    printf("error: invalid settings filepath: '%s'\n", filepath.c_str());
+    STREAMER_ERROR("error: invalid settings filepath: '%s'\n", filepath.c_str());
     return false;
   }
 
@@ -53,13 +54,13 @@ bool VideoStreamer::loadSettings(std::string filepath) {
   }
 
   if(!cfg.size()) {
-    printf("error: no configurations found.\n");
+    STREAMER_ERROR("error: no configurations found.\n");
     return false;
   }
 
   StreamerConfiguration* sc = cfg.getDefault(); // we just pick the first found config
   if(!sc) {
-    printf("error: cannot find a default configuration, did you set <default_stream_id></default_stream_id> in you xml?");
+    STREAMER_ERROR("error: cannot find a default configuration, did you set <default_stream_id></default_stream_id> in you xml?");
     return false;
   }
 
@@ -83,12 +84,12 @@ bool VideoStreamer::loadSettings(std::string filepath) {
 bool VideoStreamer::setup() {
 
   if(state != VS_STATE_NONE) {
-    printf("error: cannot setup the videostreamer because the current state is not VS_STATE_NONE, which means we're probably already setup.\n");
+    STREAMER_ERROR("error: cannot setup the videostreamer because the current state is not VS_STATE_NONE, which means we're probably already setup.\n");
     return false;
   }
 
   if(!usesVideo() && !usesAudio()) {
-    printf("error: no settings for audio or video found.\n");
+    STREAMER_ERROR("error: no settings for audio or video found.\n");
     return false;
   }
 
@@ -142,7 +143,7 @@ bool VideoStreamer::setup() {
 bool VideoStreamer::start() {
 
   if(state != VS_STATE_SETUP) {
-    printf("error: cannot initialize the videostreamer because the current state is not VS_STATE_SETUP, which means we're probably already initialized or we're not yet setup.\n");
+    STREAMER_ERROR("error: cannot initialize the videostreamer because the current state is not VS_STATE_SETUP, which means we're probably already initialized or we're not yet setup.\n");
     return false;
   }
   
@@ -166,7 +167,7 @@ bool VideoStreamer::start() {
     flv_file_writer = new FLVFileWriter();
 
     if(!flv_file_writer->open(output_file)) {
-      printf("error: cannot open the flv file writer output file.\n");
+      STREAMER_ERROR("error: cannot open the flv file writer output file.\n");
       delete flv_file_writer;
       return false;
     }
@@ -184,7 +185,7 @@ bool VideoStreamer::start() {
     if(rtmp_writer.initialize()) {
       break;
     }
-    printf("reconnecting...\n");
+    STREAMER_WARNING("Reconnecting to media servers...\n");
     sleep(3);
     retries++;
   }
@@ -200,7 +201,7 @@ bool VideoStreamer::start() {
 
 void VideoStreamer::update() {
   if(state == VS_STATE_DISCONNECTED) {
-    printf("------------------------------- test the disconnecting from rtmp server ----------------");
+    STREAMER_VERBOSE("Got disconnected, trying to reconnect.\n");
     stop();
     start();   
   }
@@ -209,13 +210,14 @@ void VideoStreamer::update() {
 bool VideoStreamer::stop() {
 
   if(state != VS_STATE_STARTED && state != VS_STATE_DISCONNECTED) {
-    printf("error: cannot stop the videostreamer when it's not yet started.\n");
+    STREAMER_ERROR("error: cannot stop the videostreamer when it's not yet started.\n");
     return false;
   }
 
   rtmp_thread.stop();
 
-  printf("called stop on rtmp thread.\n");
+  STREAMER_VERBOSE("called stop on rtmp thread.\n");
+
   enc_thread.stop();
   flv_writer.close();
   video_timeout = 0;
@@ -233,7 +235,8 @@ bool VideoStreamer::stop() {
 bool VideoStreamer::addAudio(AVPacket* pkt) {
 
   if(state != VS_STATE_STARTED) {
-    //printf("error: cannot add audio, the VideoStreamer isn't started yet.\n");
+    STREAMER_ERROR("error: cannot add audio, the VideoStreamer isn't started yet.\n");
+    pkt->release();  // when we're not connected make sure that we release it directly so it can be reused
     return false;
   }
 
@@ -244,6 +247,8 @@ bool VideoStreamer::addAudio(AVPacket* pkt) {
 bool VideoStreamer::addVideo(AVPacket* pkt) {
 
   if(state != VS_STATE_STARTED) {
+    STREAMER_ERROR("error: cannot add video, the VideoStreamer isn't started yet.\n");
+    pkt->release(); // when we're not connected make sure that we release it directly so it can be reused
     return false;
   }
 
@@ -259,7 +264,7 @@ uint8_t encoder_samplerate_to_flv(uint32_t v) {
     case AV_AUDIO_SAMPLERATE_22050: { return FLV_SOUNDRATE_22KHZ; }
     case AV_AUDIO_SAMPLERATE_44100: { return FLV_SOUNDRATE_44KHZ; }
     default: {
-      printf("error: cannot find the samplerate: %d\n", v);
+      STREAMER_ERROR("error: cannot find the samplerate: %d\n", v);
       return FLV_SOUNDRATE_UNKNOWN;
     }
   }
@@ -270,7 +275,7 @@ uint8_t encoder_audio_mode_to_flv(uint8_t v) {
     case AV_AUDIO_MODE_MONO:   { return FLV_SOUNDTYPE_MONO;   }
     case AV_AUDIO_MODE_STEREO: { return FLV_SOUNDTYPE_STEREO; }
     default: {
-      printf("error: cannot find a valid audio mode for flv: %d\n", v);
+      STREAMER_ERROR("error: cannot find a valid audio mode for flv: %d\n", v);
       return FLV_SOUNDTYPE_UNKNOWN;
     };
   }
@@ -281,7 +286,7 @@ uint8_t encoder_audio_bitsize_to_flv(uint8_t v) {
     case AV_AUDIO_BITSIZE_S8:  { return FLV_SOUNDSIZE_8BIT;  }  
     case AV_AUDIO_BITSIZE_S16: { return FLV_SOUNDSIZE_16BIT; }
     default: {
-      printf("error: cannot convert the bitsize for flv: %d\n", v);
+      STREAMER_ERROR("error: cannot convert the bitsize for flv: %d\n", v);
       return FLV_SOUNDSIZE_UNKNOWN;
     }
   }

@@ -121,7 +121,6 @@ void MultiVideoStreamer::addVideo(AVPacket* pkt) {
 }
 
 void MultiVideoStreamer::addAudio(AVPacket* pkt) {
-  STREAMER_ERROR("addAudio in MultiVideoStreamer not yet implemented.\n");
 
 #if !defined(NDEBUG)
   if(!pkt) {
@@ -130,7 +129,28 @@ void MultiVideoStreamer::addAudio(AVPacket* pkt) {
   }
 #endif
 
-  // pkt->addRef(streamers.size()-1); // - 1 because the memory pool adds a refcount of 1 when you asked for a free packet 
+  pkt->addRef(streamers.size()-1); // - 1 because the memory pool adds a refcount of 1 when you asked for a free packet 
+
+  // add the packet to all streamers
+  for(std::vector<MultiStreamerInfo*>::iterator it = streamers.begin(); it != streamers.end(); ++it) {
+    MultiStreamerInfo* msi = *it;
+    msi->streamer->addAudio(pkt);
+  }
+
+}
+
+bool MultiVideoStreamer::stop() {
+
+  bool result = true;
+
+  for(std::vector<MultiStreamerInfo*>::iterator it = streamers.begin(); it != streamers.end(); ++it) {
+    MultiStreamerInfo* msi = *it;
+    if(!msi->streamer->stop()) {
+      result = false;
+    }
+  }
+
+  return result;
 }
 
 void MultiVideoStreamer::shutdown() {

@@ -20,7 +20,7 @@
   # RTMP Thread
 
   The RTMP Thread is responsible for sending FLVTags to the RTMP server
-  as confiruged in the RTMPWriter object you pass into the constructor. 
+  as configured in the RTMPWriter object you pass into the constructor. 
   
  */
 #ifndef ROXLU_RTMP_THREAD_H

@@ -22,8 +22,31 @@ LogContext::LogContext()
   if(!loop) {
     printf("error: canot create a loop handler for the log.\n");
   }
-  
-  STREAMER_LOG_INIT("streamer.log", STREAMER_LOG_LEVEL_VERBOSE);
+
+  // get the path
+  char buffer[1024 * 4];
+  size_t size = 1024 * 4;
+  int r = uv_exepath(buffer, &size);
+  std::stringstream ss(buffer);
+  std::vector<std::string> parts;
+  std::string line;
+  while(std::getline(ss, line, '/')) {
+    parts.push_back(line);
+  }
+  parts.pop_back();
+
+  // reconstruct
+  std::string path;
+  for(std::vector<std::string>::iterator it = parts.begin(); it != parts.end(); ++it) {
+#if defined(_WIN32)
+    path += *it +"\\";
+#else
+    path += *it +"/";    
+#endif    
+  }
+  path += "streamer.log";
+
+  STREAMER_LOG_INIT(path.c_str(), STREAMER_LOG_LEVEL_VERBOSE);
 }
 
 LogContext::~LogContext() {
@@ -59,6 +82,13 @@ void streamer_log_error(int line, const char* function, const char* fmt, ...) {
   va_end(args);
 }
 
+void streamer_log_status(int line, const char* function, const char* fmt, ...) {
+  va_list args;
+  va_start(args, fmt);
+  streamer_log_function(STREAMER_LOG_LEVEL_STATUS, line, function, fmt, args);
+  va_end(args);
+}
+
 void streamer_log_function(int level, int line, const char* function, const char* fmt, va_list args) {
 
   if(level < log_ctx.min_level) {
@@ -82,6 +112,14 @@ void streamer_log_function(int level, int line, const char* function, const char
   else if(level == STREAMER_LOG_LEVEL_ERROR) {
     ss_tty << STREAMER_ANSI_ERROR;
     ss_file << "[ error   ] ";
+  }
+  else if(level == STREAMER_LOG_LEVEL_STATUS) {
+    ss_tty << STREAMER_ANSI_STATUS;
+    ss_file << "[ status  ] ";
+  }
+  else {
+    printf("error: invalid log level used: %d!\n", level);
+    ::exit(EXIT_FAILURE);
   }
 
   ss_file << buf << " (" << streamer_log_gettime() << ", " << function << " {" << line << "})" ;

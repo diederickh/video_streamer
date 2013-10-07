@@ -29,7 +29,17 @@ extern "C" {
 #include <hwscale/opengl/YUV420PGrabber.h>
 #include "Animation.h"
 
+#define USE_AUDIO 1
+
+#if USE_AUDIO
+   #include <portaudio/PAudio.h>
+   void on_audio(const void* input, unsigned long nframes, void* user);
+   PAudio audio; 
+#endif
+
 MultiVideoStreamer mvs;
+MemoryPool mempool;
+YUV420PGrabber grabber;
 
 bool must_run = false;
 
@@ -42,6 +52,7 @@ void resize_callback(GLFWwindow* window, int width, int height);
 int main() {
 
   // MULTI STREAMER SETUP
+  // ----------------------------------------
   std::string settings_file = rx_get_exe_path() +"test_multi_streamer.xml";
   if(!mvs.loadSettings(settings_file)) {
     STREAMER_ERROR("error: cannot find the connection_test.xml file: %s.", settings_file.c_str());
@@ -63,6 +74,21 @@ int main() {
   signal(SIGINT, sighandler);
 
   must_run = true;
+
+#if USE_AUDIO
+
+  // AUDIO SETUP
+  // ----------------------------------------
+  audio.listDevices();
+  if(!audio.openInputStream(audio.getDefaultInputDevice(), 2, paInt16, 44100, 512)) {
+    STREAMER_ERROR("error: cannot set port audio.");
+    ::exit(EXIT_FAILURE);
+  }
+
+  STREAMER_VERBOSE("Using input audio device: %d.", audio.getDefaultInputDevice());
+  audio.setCallback(on_audio, NULL);
+  
+#endif
 
   // GL SETUP
   // ----------------------------------------
@@ -109,7 +135,7 @@ int main() {
 
   // GRABBER SETUP
   // -------------------------------------------
-  YUV420PGrabber grabber;
+ 
   for(size_t i = 0; i < mvs.size(); ++i) {
 
     MultiStreamerInfo* msi = mvs[i];
@@ -131,7 +157,6 @@ int main() {
     ::exit(EXIT_FAILURE);
   }
 
-  MemoryPool mempool;
   if(!mempool.allocateVideoFrames(10, grabber.getNumBytes())) {
     STREAMER_ERROR("Cannot allocate the video frames for the memory pool. Stopping now\n");
     ::exit(EXIT_FAILURE);
@@ -139,11 +164,23 @@ int main() {
 
   grabber.start();
 
+#if USE_AUDIO
+  size_t nbytes_audio = 2 * sizeof(short int) * 512; 
+  if(!mempool.allocateAudioFrames(128, nbytes_audio)) {
+     STREAMER_ERROR("Cannot allocate the audio frames for the memory pool. Stopping now.\n");
+     ::exit(EXIT_FAILURE);
+  }
+  audio.start();
+#endif
+
   glEnable(GL_CULL_FACE);
 
   while(!glfwWindowShouldClose(win)) {
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // make sure that we reconnect when we get disconnected
+    mvs.update();
 
     if(grabber.hasNewFrame()) {
       grabber.beginGrab();
@@ -184,6 +221,13 @@ int main() {
     glfwPollEvents();
   }
 
+#if USE_AUDIO
+  audio.stop();
+#endif
+
+  mvs.stop();
+  mvs.shutdown();
+  
   glfwTerminate();
 
   return EXIT_SUCCESS;
@@ -223,3 +267,24 @@ void key_callback(GLFWwindow* win, int key, int scancode, int action, int mods) 
 void resize_callback(GLFWwindow* window, int width, int height) {
 }
 
+#if USE_AUDIO
+void on_audio(const void* input, unsigned long nframes, void* user) {
+
+  if(nframes != 512) {
+    STREAMER_ERROR("The receive audio buffer does not contain the size we need.\n");
+    ::exit(EXIT_FAILURE);
+  }
+
+  AVPacket* pkt = mempool.getFreeAudioPacket();                                                                    
+  if(!pkt) {
+    STREAMER_ERROR("Cannot get a free audio packet!\n");
+    return;
+  }
+
+  uint8_t* ptr = (uint8_t*)input;
+  size_t nbytes = nframes * 2 * sizeof(short int);
+  pkt->data.assign(ptr, ptr + nbytes);
+  pkt->setTimeStamp(grabber.getTimeStamp());
+  mvs.addAudio(pkt);
+}
+#endif

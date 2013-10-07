@@ -351,8 +351,8 @@ inline bool YUV420PGrabber::addSize(int id, int w, int h) {
   YUV420PSize s;
   s.yw = w;
   s.yh = h;
-  s.uvw = w >> 1;
-  s.uvh = h >> 1;
+  s.uvw = w * 0.5;
+  s.uvh = h * 0.5;
 
   s.id = id;
   sizes.push_back(s);

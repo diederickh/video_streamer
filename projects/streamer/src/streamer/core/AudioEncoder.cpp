@@ -17,11 +17,24 @@ AudioEncoder::AudioEncoder()
   :lame_flags(NULL)
   ,samplerate(0)
   ,nchannels(0)
+  ,bitrate_timeout(0)
+  ,bitrate_delay(1000 * 1000 * 100)
+  ,bitrate_in_kbps(0.0)
+  ,bitrate_nbytes(0.0)
+  ,bitrate_time_started(0)
 {
 }
 
 AudioEncoder::~AudioEncoder() {
-  STREAMER_ERROR("AudioEncoder::~AudioEncoder() - cleanup.\n");
+
+  shutdown();
+
+  nchannels = 0;
+  bitrate_timeout = 0;
+  bitrate_delay = 0;
+  bitrate_in_kbps = 0;
+  bitrate_nbytes = 0;
+  
 }
 
 bool AudioEncoder::setup(AudioSettings s) {
@@ -100,7 +113,7 @@ bool AudioEncoder::initialize() {
   lame_set_num_channels(lame_flags, (mode == STEREO) ? 2 : 1);
   lame_set_in_samplerate(lame_flags, samplerate);
   lame_set_brate(lame_flags, settings.bitrate);
-  lame_set_VBR_min_bitrate_kbps(lame_flags, settings.bitrate);
+  lame_set_VBR(lame_flags, vbr_off);
   lame_set_mode(lame_flags, mode);
   lame_set_quality(lame_flags, settings.quality);
 
@@ -115,17 +128,27 @@ bool AudioEncoder::initialize() {
   STREAMER_VERBOSE("lame: bitrate: %d\n", lame_get_brate(lame_flags));
 #endif
 
+  bitrate_time_started = uv_hrtime(); 
+  bitrate_timeout = bitrate_time_started + bitrate_delay;
+
   return true;
 }
 
 bool AudioEncoder::shutdown() {
-  // @todo - cleanup audio encoder here
-  STREAMER_ERROR("error: we still need to implement a proper shutdown() for the AudioEncoder.\n");
+
+  if(lame_flags) {
+    lame_close(lame_flags);
+    lame_flags = NULL;
+  }
+
+  memset(mp3_buffer, 0x00, AUDIO_ENCODER_BUFFER_SIZE);
+
   return false;
 }
 
 // we expect the AVPacket.data to contain either interleaved S16, or  interleaved F32 audio
 bool AudioEncoder::encodePacket(AVPacket* p, FLVTag& tag) {
+
   assert(lame_flags);
   assert(settings.in_interleaved); /* we only support interleaved audio for now */
  
@@ -144,6 +167,19 @@ bool AudioEncoder::encodePacket(AVPacket* p, FLVTag& tag) {
   else if(settings.in_bitsize == AV_AUDIO_BITSIZE_F32) {
     nsamples = p->data.size() / (sizeof(float) * nchannels);
     written = lame_encode_buffer_interleaved_ieee_float(lame_flags, (const float*)&p->data.front(), nsamples, mp3_buffer, AUDIO_ENCODER_BUFFER_SIZE);
+  }
+
+
+  if(written > 0) {
+    bitrate_nbytes += written;
+  }
+
+  uint64_t time_now = uv_hrtime();
+  if(time_now >= bitrate_timeout) {
+    bitrate_timeout = time_now + bitrate_delay;
+    double duration = (time_now - bitrate_time_started) / 1000000000.0; // in s.
+    bitrate_in_kbps = ((bitrate_nbytes * 8) / 1000) / duration;
+    STREAMER_STATUS("audio bitrate: %0.2f kbps\n", bitrate_in_kbps);
   }
 
 #if defined(USE_GRAPH)

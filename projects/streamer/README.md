@@ -199,10 +199,12 @@ VideoStreamer depends on the following libraries:
 - Start Wowza  
 
 References
-[0] = X264 for live streaming: http://veetle.com/index.php/article/view/x264
-[1] = Some good info on settings: http://doom10.org/index.php?topic=2084.0 
-[2] = Adobe H264 info: http://www.adobe.com/devnet/adobe-media-server/articles/h264_encoding.html 
-[3] = X264 bitrate settings: http://mewiki.project357.com/wiki/X264_Encoding_Suggestions 
+
+  - [0] X264 for live streaming: http://veetle.com/index.php/article/view/x264 
+  - [1] Some good info on settings: http://doom10.org/index.php?topic=2084.0 
+  - [2] Adobe H264 info: http://www.adobe.com/devnet/adobe-media-server/articles/h264_encoding.html 
+  - [3] X264 bitrate settings: http://mewiki.project357.com/wiki/X264_Encoding_Suggestions 
+  - [4] Veetle on vbv-maxrate and vbv-bufsize: http://veetle.com/index.php/article/view/bitrateLimit
 
 ### Notes:
 - make sure that all packets you send are 100% ascending order of timestamps

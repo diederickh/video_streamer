@@ -21,15 +21,6 @@
 
   Encodes YUV420p/I420 frames using libx264.
 
-  @todo - the video encoder can work with two kinds of inputs now. when you're not 
-          specifying any stride (see setStrides)  or AVPacket.y_offset, AVPacket.u_offset, 
-          AVPacket.v_offset we assume that you your providing the I420P data as 3 seperate
-          buffers. When you specify the setStrides and the AVPacket.{y,u,v}_offset then you
-          can basically pass any buffer as long as the AVPacket.data contains all the data.
-
-          We need to to remove the first interface which assumes the 3 planes and start using 
-          the setStrides/AVPacket.{y,u,v}_offset. 
-
   _Example_
   ```c++
   VideoEncoder ve;

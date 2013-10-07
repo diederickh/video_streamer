@@ -12,8 +12,13 @@
         <url>rtmp://127.0.0.1/flvplayback/quality0</url>
       </server>
       <video>
+
+        <width>856</width>
+        <height>480</height>
+        <!--
         <width>640</width>
         <height>360</height>
+        -->
         <fps>15</fps>
         <bitrate>500</bitrate>
         <threads>2</threads>
