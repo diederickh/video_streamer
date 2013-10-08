@@ -61,20 +61,25 @@ bool VideoStreamerConfig::load(std::string filepath) {
     xml_node<>* streams = conf.getNode("videostreamer/streams");
     for(xml_node<>* stream = streams->first_node(); stream; stream = stream->next_sibling()) {
       sc = new StreamerConfiguration();
-      sc->id = conf.readU16(stream, "id");
-      sc->video.width = conf.readU16(stream, "video/width");
-      sc->video.height = conf.readU16(stream, "video/height");
-      sc->video.fps = conf.readU16(stream, "video/fps");
+      sc->id            = conf.readU16(stream, "id");
+      sc->video.width   = conf.readU16(stream, "video/width");
+      sc->video.height  = conf.readU16(stream, "video/height");
+      sc->video.fps     = conf.readU16(stream, "video/fps");
       sc->video.bitrate = conf.readU16(stream, "video/bitrate");
       sc->video.threads = conf.readU16(stream, "video/threads");
+      sc->video.preset  = conf.readString(stream, "video/preset", "veryfast");
+      sc->video.tune    = conf.readString(stream, "video/tune", "zerolatency");
+      sc->video.profile = conf.readString(stream, "video/profile", "baseline");
+      sc->video.vbv_buffer_size = conf.readS32(stream, "video/vbv_buffer_size", -1);
+      sc->video.vbv_max_bitrate = conf.readS32(stream, "video/vbv_max_bitrate", -1);
 
       if(conf.doesNodeExists(stream, "audio")) {
-        sc->audio.samplerate = conf.readU32(stream, "audio/samplerate");
-        sc->audio.bitsize = conf.readU8(stream, "audio/bitsize");
-        sc->audio.quality = conf.readU8(stream, "audio/quality");
-        sc->audio.bitrate = conf.readU32(stream, "audio/bitrate");
-        sc->audio.mode = conf.readU32(stream, "audio/mode");
-        sc->audio.in_bitsize = conf.readU8(stream, "audio/in_bitsize");
+        sc->audio.samplerate       = conf.readU32(stream, "audio/samplerate");
+        sc->audio.bitsize          = conf.readU8(stream, "audio/bitsize");
+        sc->audio.quality          = conf.readU8(stream, "audio/quality");
+        sc->audio.bitrate          = conf.readU32(stream, "audio/bitrate");
+        sc->audio.mode             = conf.readU32(stream, "audio/mode");
+        sc->audio.in_bitsize       = conf.readU8(stream, "audio/in_bitsize");
         sc->audio.in_interleaved = conf.readU8(stream, "audio/in_interleaved");
       }
 
@@ -87,6 +92,8 @@ bool VideoStreamerConfig::load(std::string filepath) {
       if(conf.doesNodeExists(stream, "server/password")) {
         sc->server.password = conf.readString(stream, "server/password");
       }
+
+      
 
       configs.push_back(sc);
       sc = NULL;

@@ -99,8 +99,15 @@ struct VideoSettings {
   uint16_t width;         /* width of the incoming frames */
   uint16_t height;        /* height of the incoming frames */
   uint8_t fps;            /* framerate, e.g. 60 */
+
+  /* x264 */
   uint32_t bitrate;       /* preferred bitrate in kbps, setting vbv_buffer_size as bitrate control  */
   uint16_t threads;       /* number of encoding threads - sets the i_threads x264 parameter */
+  std::string preset;     /* one of the x264 presets: ultrafast, superfast, veryfast, faster, fast, medium, slow, slower, veryslow, placebo */
+  std::string tune;       /* one or multiple x264 tunes: film, animation, grain, stillimage, psnr, ssim, fastdecode, zerolatency */
+  std::string profile;    /* h264 profile: baseline, main, high, high10, high422, high44 */
+  int32_t vbv_buffer_size; /* x264 vbv_buffer size to control bitrate; when not specificied we will use the bitrate, defaults to -1 meaning "use bitrate"  */
+  int32_t vbv_max_bitrate; /* x264 vbv_max_bitrate to control the bitrate; when not specifified we will use the bitrate, defaults to -1 meaning "use bitrate" */
 };
 
 // -----------------------------------------

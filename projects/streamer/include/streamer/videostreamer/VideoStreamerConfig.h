@@ -58,11 +58,16 @@
         <url>rtmp://192.168.0.188/flvplayback/livestream</url>
       </server>
       <video>
-        <width>320</width>                    <!-- width of the output video -->
-        <height>240</height>                  <!-- height of the output video -->
-        <fps>15</fps>                         <!-- desired framerate to encode --> 
-        <bitrate>400</bitrate>                <!-- the bitrate you want to use for the video, in kbps --> 
-        <threads>4</threads>                  <!-- the number of x264 encoder threads, set this to the number of logical cores -->
+        <width>320</width>                      <!-- width of the output video -->
+        <height>240</height>                    <!-- height of the output video -->
+        <fps>15</fps>                           <!-- desired framerate to encode --> 
+        <bitrate>400</bitrate>                  <!-- the bitrate you want to use for the video, in kbps --> 
+        <threads>4</threads>                    <!-- the number of x264 encoder threads, set this to the number of logical cores -->
+        <preset>veryfast</preset>               <!-- the x264 preset, use one of: ultrafast, superfast, veryfast, faster, fast, medium, slow, slower, placebo -->
+        <tune>zerolatency,animation</tune>      <!-- the x264 tune, use one or more: film, animation, grain, stillimage, psnr, ssim, fastdecode, zerolatency -->
+        <profile>baseline</profile>             <!-- the h264 profile: baseline, main, high, high10, high422, high444 --> 
+        <vbv_buffer_size>800</vbv_buffer_size>  <!-- the x264 vbv_buffer_size, used to control the bitrate. when not set we use the <bitrate> value -->
+        <vbv_max_bitrate>400</vbv_max_bitrate>  <!-- the x264 vbv_max_bitrate, set this to the same value as <bitrate> is this is the max bandwidth you've got. when not set we use the <bitrate> value. This value represents the max bitrate you video stream is allowed to peak at. -->
       </video>
       <audio>
         <samplerate>0</samplerate>            <!-- samplerate: 44100, 22050, 11025 -->

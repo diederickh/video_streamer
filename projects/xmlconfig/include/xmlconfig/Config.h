@@ -95,6 +95,26 @@ class Config {
       return result;
   }
 
+  int8_t readS8(xml_node<>* parent, std::string path, int8_t defaultValue);
+  int16_t readS16(xml_node<>* parent, std::string path, int16_t defaultValue);
+  int32_t readS32(xml_node<>* parent, std::string path, int32_t defaultValue);
+  int64_t readS64(xml_node<>* parent, std::string path, int64_t defaultValue);
+  uint8_t readU8(xml_node<>* parent, std::string path, uint8_t defaultValue);
+  uint16_t readU16(xml_node<>* parent, std::string path, uint16_t defaultValue);
+  uint32_t readU32(xml_node<>* parent, std::string path, uint32_t defaultValue);
+  uint64_t readU64(xml_node<>* parent, std::string path, uint64_t defaultValue);
+  std::string readString(xml_node<>* parent, std::string path, std::string defaultValue);
+
+  template<class T>
+    T read(xml_node<>* parent, std::string path, T defaultValue) {
+
+    if(!doesNodeExists(parent, path)) {
+      return defaultValue;
+    }
+
+    return read<T>(parent, path);
+  }
+
   bool doesNodeExists(xml_node<>* parent, std::string path);
   bool parsePath(std::string& path, std::vector<std::string>& result);
   xml_node<>* getNode(std::string path); /* get node from the "root" element */
@@ -134,6 +154,7 @@ inline int32_t Config::readS32(xml_node<>* parent, std::string path) {
   return read<int32_t>(parent, path);
 }
 
+
 inline int64_t Config::readS64(xml_node<>* parent, std::string path) {
   return read<int64_t>(parent, path);
 }
@@ -148,6 +169,42 @@ inline double Config::readDouble(xml_node<>* parent, std::string path) {
 
 inline std::string Config::readString(xml_node<>* parent, std::string path) {
   return read<std::string>(parent, path);
+}
+
+inline int8_t Config::readS8(xml_node<>* parent, std::string path, int8_t defaultValue) {
+  return read<int8_t>(parent, path, defaultValue);
+}
+
+inline int16_t Config::readS16(xml_node<>* parent, std::string path, int16_t defaultValue) {
+  return read<int16_t>(parent, path, defaultValue);
+}
+
+inline int32_t Config::readS32(xml_node<>* parent, std::string path, int32_t defaultValue) {
+  return read<int32_t>(parent, path, defaultValue);
+}
+
+inline int64_t Config::readS64(xml_node<>* parent, std::string path, int64_t defaultValue) {
+  return read<int64_t>(parent, path, defaultValue);
+}
+
+inline uint8_t Config::readU8(xml_node<>* parent, std::string path, uint8_t defaultValue) {
+  return read<uint8_t>(parent, path, defaultValue);
+}
+
+inline uint16_t Config::readU16(xml_node<>* parent, std::string path, uint16_t defaultValue) {
+  return read<uint16_t>(parent, path, defaultValue);
+}
+
+inline uint32_t Config::readU32(xml_node<>* parent, std::string path, uint32_t defaultValue) {
+  return read<uint32_t>(parent, path, defaultValue);
+}
+
+inline uint64_t Config::readU64(xml_node<>* parent, std::string path, uint64_t defaultValue) {
+  return read<uint64_t>(parent, path, defaultValue);
+}
+
+inline std::string Config::readString(xml_node<>* parent, std::string path, std::string defaultValue) {
+  return read<std::string>(parent, path, defaultValue);
 }
 
 inline bool Config::getNodeValue(xml_node<>* parent, std::string path, std::stringstream& ss) {

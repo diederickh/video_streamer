@@ -74,15 +74,26 @@ VideoSettings::VideoSettings()
   :width(0)
   ,height(0)
   ,fps(0.0)
+  ,bitrate(0)
+  ,threads(1)
+  ,vbv_buffer_size(-1)
+  ,vbv_max_bitrate(-1)
 {
 
 }
 
 bool VideoSettings::validate() {
+
   if(!width || !height || !fps) {
     STREAMER_ERROR("videosettings: invalid settings. width = %d, height = %d, fps = %d\n", width, height, fps);
     return false;
   }
+  
+  if(!bitrate) {
+    STREAMER_ERROR("videosettings: no bitrate set.\n");
+    return false;
+  }
+
   return true;
 }
 

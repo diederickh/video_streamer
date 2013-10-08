@@ -81,18 +81,16 @@ bool VideoEncoder::initializeX264() {
   int r = 0;
   x264_param_t* p = &params;
   
-  r = x264_param_default_preset(p, "superfast", "zerolatency");
+  std::string preset = (settings.preset.size()) ? settings.preset : "superfast";
+  std::string tune = (settings.tune.size()) ? settings.tune : "zerolatency";
+
+  r = x264_param_default_preset(p, preset.c_str(), tune.c_str());
   if(r != 0) {
     STREAMER_ERROR("error: cannot set the default preset on x264.\n");
     return false;
   }
 
-#if !defined(NDEBUG)
-  p->i_log_level = X264_LOG_DEBUG;
-  p->pf_log = videoencoder_x264_log;
-#endif   
-
-  p->i_threads = 1;
+  p->i_threads = settings.threads;
   p->i_width = settings.width;
   p->i_height = settings.height;
   p->i_fps_num = settings.fps;
@@ -101,16 +99,21 @@ bool VideoEncoder::initializeX264() {
 
   p->rc.i_rc_method = X264_RC_ABR;  // when you're limited to bandwidth you set the vbv_buffer_size and vbv_max_bitrate using the X264_RC_ABR rate control method. The vbv_buffer_size is a decoder option and tells the decoder how much data must be buffered before playback can start. When vbv_max_bitrate == vbv_buffer_size, then it will take one second before the playback might start. when vbv_buffer_size == vbv_max_bitrate * 0.5, it might start in 0.5 sec. 
   p->rc.i_bitrate = settings.bitrate;
-  p->rc.i_vbv_buffer_size = p->rc.i_bitrate; 
-  p->rc.i_vbv_max_bitrate = p->rc.i_bitrate;
+  p->rc.i_vbv_buffer_size = (settings.vbv_buffer_size < 0) ? p->rc.i_bitrate : settings.vbv_buffer_size; 
+  p->rc.i_vbv_max_bitrate = (settings.vbv_max_bitrate < 0) ? p->rc.i_bitrate : settings.vbv_max_bitrate;;
 
-#if 0
-  r = x264_param_apply_profile(p, "main");
-  if(r != 0) {
-    STREAMER_ERROR("error: cannot set the baseline profile on x264.\n");
-    return false;
+#if !defined(NDEBUG)
+  p->i_log_level = X264_LOG_DEBUG;
+  p->pf_log = videoencoder_x264_log;
+#endif   
+
+  if(settings.profile.size()) {
+    r = x264_param_apply_profile(p, settings.profile.c_str());
+    if(r != 0) {
+      STREAMER_ERROR("error: cannot set the baseline profile on x264.\n");
+      return false;
+    }
   }
-#endif
 
   encoder = x264_encoder_open(p);
   if(!encoder) {
