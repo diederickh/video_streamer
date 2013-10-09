@@ -119,6 +119,10 @@
 #define FLV_VIDEOCODEC_AVC             7
 #define FLV_VIDEOCODEC_UNKNOWN         99
 
+#define FLV_AAC_CONFIG 0
+#define FLV_AAC_RAW_DATA 1
+#define FLV_AAC_UNKNOWN 99
+
 #define FLV_AVC_SEQUENCE_HEADER 0
 #define FLV_AVC_NALU 1
 #define FLV_AVC_EOF 2
@@ -162,6 +166,7 @@ struct FLVTag {
   void setData(uint8_t* ptr, uint32_t size);   /* set the data + size members */
   void setVideoCodec(uint8_t codec);
   void setFrameType(uint8_t ft); /* set video frame type */
+  void setAACPacketType(uint8_t pt); /* set the aac packet type, 0 = audio specific config, 1 = raw data */
   void setAVCPacketType(uint8_t pt); /* set the avc packet type, 0 = sequence header, aka AVC Decoder Configuration */
   void setCompositionTime(int32_t t);
   void setAudioCodec(uint8_t codec); /* sets the kind of audio codec used */
@@ -184,6 +189,7 @@ struct FLVTag {
   uint8_t sound_rate;
   uint8_t sound_type;
   uint8_t sound_size;
+  uint8_t aac_packet_type; 
   std::vector<uint8_t> sound_data; 
 
   /* video specific data - used by reader */
@@ -209,6 +215,10 @@ inline void FLVTag::setFrameType(uint8_t ft) {
 
 inline void FLVTag::setAVCPacketType(uint8_t pt) {
   avc_packet_type = pt;
+}
+
+inline void FLVTag::setAACPacketType(uint8_t pt) {
+  aac_packet_type = pt;
 }
 
 inline void FLVTag::setCompositionTime(int32_t t) {

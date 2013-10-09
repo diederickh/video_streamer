@@ -11,7 +11,9 @@
 // --------------------------------------------------
 
 void videoencoder_x264_log(void* param, int level, const char* fmt, va_list arg) {
-  
+
+  return ;  // @todo remove
+
   char buf[1024 * 8]; 
   vsprintf(buf, fmt, arg);
 
@@ -73,6 +75,7 @@ bool VideoEncoder::initialize() {
 }
 
 // See https://gist.github.com/roxlu/0f61a499df75e64b764d for an older version of this, with some rate control tests
+// @todo - we should check if the supplied settings are valid for the current profile.. e.g. bframes are not supported by the baseline profile
 bool VideoEncoder::initializeX264() {
   assert(settings.width > 0);
   assert(settings.height > 0);
@@ -83,6 +86,7 @@ bool VideoEncoder::initializeX264() {
   
   std::string preset = (settings.preset.size()) ? settings.preset : "superfast";
   std::string tune = (settings.tune.size()) ? settings.tune : "zerolatency";
+  STREAMER_STATUS("x264 using preset: %s and tune: %s\n", preset.c_str(), tune.c_str());
 
   r = x264_param_default_preset(p, preset.c_str(), tune.c_str());
   if(r != 0) {
@@ -101,6 +105,18 @@ bool VideoEncoder::initializeX264() {
   p->rc.i_bitrate = settings.bitrate;
   p->rc.i_vbv_buffer_size = (settings.vbv_buffer_size < 0) ? p->rc.i_bitrate : settings.vbv_buffer_size; 
   p->rc.i_vbv_max_bitrate = (settings.vbv_max_bitrate < 0) ? p->rc.i_bitrate : settings.vbv_max_bitrate;;
+
+  if(settings.keyint_max > 0) {
+    p->i_keyint_max = settings.keyint_max;
+  }
+  
+  if(settings.bframe > 0) {
+    p->i_bframe = settings.bframe;
+  }
+
+  if(settings.level_idc > 0) {
+    p->i_level_idc = settings.level_idc;
+  }
 
 #if !defined(NDEBUG)
   p->i_log_level = X264_LOG_DEBUG;
@@ -236,6 +252,13 @@ bool VideoEncoder::encodePacket(AVPacket* p, FLVTag& tag) {
   tag.setFrameType(pic_out.b_keyframe ? FLV_VIDEOFRAME_KEY_FRAME : FLV_VIDEOFRAME_INTER_FRAME);
   tag.setCompositionTime(offset);
 
+  // debuging buffer issue
+  if(pic_out.b_keyframe) {
+    static uint64_t kt = uv_hrtime();
+    double d = double(((uv_hrtime() - kt)) / 1000000000.0);
+    STREAMER_STATUS("------------------------ got a keyframe, took: %f s\n", d);
+    kt = uv_hrtime();
+  }
   return true;
 }
 

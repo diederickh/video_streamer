@@ -144,12 +144,14 @@ void print_x264_params(x264_param_t* p) {
 
   // skipping a lot..
   STREAMER_VERBOSE("--\n");
-  STREAMER_VERBOSE("x264_param_t.i_rc_method: %d\n", p->rc.i_rc_method);
-  STREAMER_VERBOSE("x264_param_t.i_qp_constant: %d\n", p->rc.i_qp_constant);
-  STREAMER_VERBOSE("x264_param_t.i_qp_min: %d\n", p->rc.i_qp_min);
-  STREAMER_VERBOSE("x264_param_t.i_qp_max: %d \n", p->rc.i_qp_max);
-  STREAMER_VERBOSE("x264_param_t.i_qp_step: %d \n", p->rc.i_qp_step);
-  STREAMER_VERBOSE("x264_param_t.i_bitrate: %d \n", p->rc.i_bitrate);
+  STREAMER_VERBOSE("x264_param_t.rc.i_rc_method: %d\n", p->rc.i_rc_method);
+  STREAMER_VERBOSE("x264_param_t.rc.i_qp_constant: %d\n", p->rc.i_qp_constant);
+  STREAMER_VERBOSE("x264_param_t.rc.i_qp_min: %d\n", p->rc.i_qp_min);
+  STREAMER_VERBOSE("x264_param_t.rc.i_qp_max: %d \n", p->rc.i_qp_max);
+  STREAMER_VERBOSE("x264_param_t.rc.i_qp_step: %d \n", p->rc.i_qp_step);
+  STREAMER_VERBOSE("x264_param_t.rc.i_bitrate: %d \n", p->rc.i_bitrate);
+  STREAMER_VERBOSE("x264_param_t.rc.i_vbv_buffer_size: %d\n", p->rc.i_vbv_buffer_size);
+  STREAMER_VERBOSE("x264_param_t.rc.i_vbv_max_bitrate: %d\n", p->rc.i_vbv_max_bitrate);
 
   // skipping .. 
   STREAMER_VERBOSE("--\n");

@@ -48,32 +48,6 @@ void key_callback(GLFWwindow* win, int key, int scancode, int action, int mods);
 void error_callback(int err, const char* desc);
 void resize_callback(GLFWwindow* window, int width, int height);
 
-#if 0
-    <stream>
-      <id>1</id>
-      <server>
-        <url>rtmp://127.0.0.1/flvplayback/quality1</url>
-      </server>
-      <video>
-        <width>320</width>
-        <height>180</height>
-        <fps>15</fps>
-        <bitrate>150</bitrate>
-        <threads>2</threads>
-      </video>
-      <audio>
-        <samplerate>44100</samplerate>  <!-- samplerate: 44100, 22050, 11025 -->
-        <mode>2</mode> <!-- mode: mono = 1, stereo = 2 -->
-        <bitsize>2</bitsize> <!-- bitsize: S8 = 0, S16 = 2, F32 = 3 -->
-        <bitrate>64</bitrate> <!-- in kbps -->
-        <quality>4</quality>
-        <in_bitsize>0</in_bitsize>
-        <in_interleaved>1</in_interleaved>
-      </audio>
-    </stream>
-
-#endif
-
 int main() {
 
   // MULTI STREAMER SETUP
@@ -105,7 +79,7 @@ int main() {
   // AUDIO SETUP
   // ----------------------------------------
   audio.listDevices();
-  if(!audio.openInputStream(audio.getDefaultInputDevice(), 2, paInt16, 44100, 512)) {
+  if(!audio.openInputStream(audio.getDefaultInputDevice(), 2, paInt16, 44100, 1024)) {
     STREAMER_ERROR("error: cannot set port audio.");
     ::exit(EXIT_FAILURE);
   }
@@ -298,7 +272,7 @@ void resize_callback(GLFWwindow* window, int width, int height) {
 #if USE_AUDIO
 void on_audio(const void* input, unsigned long nframes, void* user) {
 
-  if(nframes != 512) {
+  if(nframes != 1024) {
     STREAMER_ERROR("The receive audio buffer does not contain the size we need.\n");
     ::exit(EXIT_FAILURE);
   }

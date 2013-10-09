@@ -5,7 +5,8 @@
 // -----------------------------------------------------------
 
 MultiStreamerInfo::MultiStreamerInfo()
-  :streamer(NULL)
+  :audio_encoder(NULL)
+  ,streamer(NULL)
   ,id(-1)
 {
 }
@@ -58,7 +59,19 @@ bool MultiVideoStreamer::setup() {
     }
 
     MultiStreamerInfo* msi = new MultiStreamerInfo();
-    msi->streamer = new VideoStreamer();
+
+    if(cfg->audio.codec_id == AV_AUDIO_CODEC_MP3) {
+      msi->audio_encoder = new AudioEncoderMP3();
+    }
+    else if(cfg->audio.codec_id == AV_AUDIO_CODEC_AAC) {
+      msi->audio_encoder = new AudioEncoderFAAC();
+    }
+    else {
+      STREAMER_ERROR("Error, we cannot find a suitable encoder for the given audio codec id: %d, use one of the AV_AUDIO_CODEC_{MP3, AAC, ..} values. \n");
+      ::exit(EXIT_FAILURE);
+    }
+
+    msi->streamer = new VideoStreamer(*msi->audio_encoder);
     msi->streamer->setServerSettings(cfg->server);
     msi->streamer->setAudioSettings(cfg->audio);
     msi->streamer->setVideoSettings(cfg->video);
@@ -166,6 +179,11 @@ void MultiVideoStreamer::shutdown() {
     delete msi->streamer;
     msi->streamer = NULL;
     msi->id = -1;
+    
+    if(msi->audio_encoder) {
+      delete msi->audio_encoder;
+      msi->audio_encoder = NULL;
+    }
 
     delete msi;
     msi = NULL;

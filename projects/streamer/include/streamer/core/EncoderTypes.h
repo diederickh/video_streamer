@@ -24,6 +24,10 @@
 #define AV_TYPE_VIDEO 1
 #define AV_TYPE_AUDIO 2
 
+#define AV_AUDIO_CODEC_UNKNOWN 0
+#define AV_AUDIO_CODEC_MP3 1
+#define AV_AUDIO_CODEC_AAC 2
+
 #define AV_AUDIO_SAMPLERATE_UNKNOWN 0
 #define AV_AUDIO_SAMPLERATE_11025 11025
 #define AV_AUDIO_SAMPLERATE_22050 22050
@@ -106,8 +110,11 @@ struct VideoSettings {
   std::string preset;     /* one of the x264 presets: ultrafast, superfast, veryfast, faster, fast, medium, slow, slower, veryslow, placebo */
   std::string tune;       /* one or multiple x264 tunes: film, animation, grain, stillimage, psnr, ssim, fastdecode, zerolatency */
   std::string profile;    /* h264 profile: baseline, main, high, high10, high422, high44 */
-  int32_t vbv_buffer_size; /* x264 vbv_buffer size to control bitrate; when not specificied we will use the bitrate, defaults to -1 meaning "use bitrate"  */
-  int32_t vbv_max_bitrate; /* x264 vbv_max_bitrate to control the bitrate; when not specifified we will use the bitrate, defaults to -1 meaning "use bitrate" */
+  int32_t vbv_buffer_size; /* x264 i_vbv_buffer size to control bitrate; when not specificied we will use the bitrate, defaults to -1 meaning "use bitrate"  */
+  int32_t vbv_max_bitrate; /* x264 i_vbv_max_bitrate to control the bitrate; when not specifified we will use the bitrate, defaults to -1 meaning "use bitrate" */
+  int32_t keyint_max;      /* x264 i_keyint_max, the maximum interval between frames when a keyframe should be inserted, defaults to -1 meaning, use default */
+  int32_t bframe;          /* x264 i_bframe, how many bframes you want, default to -1, meaning use the default amount. note that this does not work with the baseline profile */
+  int16_t level_idc;       /* x264 i_level_idc, the profile level, use values like 11 for 1.1, 30 for 3.0, 31 for 3.1, 32 for 3.2 etc.. when you don't specify we defualt to -1 meaning we don't set the level at all */
 };
 
 // -----------------------------------------
@@ -116,10 +123,11 @@ struct AudioSettings {
   AudioSettings();
   void print();            /* print some debug info */
   bool validate();         /* validates the settings; if false is returned we cannot use them */
+  uint8_t codec_id;        /* e.g. AV_AUDIO_CODEC_MP3 or AV_AUDIO_CODEC_AAC, defaults to AV_AUDIO_CODEC_UNKNOWN */
   uint32_t samplerate;     /* e.g. AV_AUDIO_SAMPLERATE_44100 */
   uint8_t mode;            /* e.g. AV_AUDIO_MODE_STEREO */
   uint8_t bitsize;         /* e.g. AV_AUDIO_BITSIZE_S16, the output format as supported by flash */
-  uint8_t quality;         /* quality to use, value between 0 and 9, 0 = best (slow), 9 = worst (fast), 5 is ok */
+  uint8_t quality;         /* mp3: quality to use, value between 0 and 9, 0 = best (slow), 9 = worst (fast), 5 is ok */
   uint16_t bitrate;        /* bitrate in kilobits */
   uint8_t in_bitsize;      /* e.g. AV_AUDIO_BITSIZE_S16, the format of the input data as passed to the audio encoder, when not specified we will use `bitsize`  */
   bool in_interleaved;     /* set to true when the input data is interleaved. defaults to true*/

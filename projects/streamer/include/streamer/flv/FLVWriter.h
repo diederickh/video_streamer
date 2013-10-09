@@ -48,6 +48,7 @@ class FLVWriter {
   void setWidth(double w);
   void setVideoDataRate(double rate);
   void setDecoderConfigurationRecord(AVCDecoderConfigurationRecord rec);
+  void setAudioSpecificConfig(std::vector<uint8_t> audioConfig); /* set the audio specific config, for AAC audio as defined in ISO 14496-3, this data is appended to the stream when open() has been called and the audio codec is AAC. Set this before calling open() */
 
   bool open(); /* open the FLV stream - writer header and uses the current state; make sure to call the appropriate set*() functions */
   void writeVideoTag(FLVTag& tag); /* sets the correct codec and makes sure the given tag is a video tag */
@@ -61,6 +62,7 @@ class FLVWriter {
   void writeHeader(BitStream& bitstream); /* write the first part of the bitstream */
   void writeMetaData(BitStream& bitstream); /* writes the `onMetaData` AMF0 object */
   void writeDecoderConfigurationRecord(BitStream& bitstream); /* writes the previously set AVC Decoder Configuration Record */
+  void writeAudioSpecificConfig(BitStream& bitstream); /* writes the audio specific config data for AAC data */
   void rewriteMetaData(); 
   void rewriteFLVTag(FLVTag& tag, BitStream& bitstream, size_t offset, size_t previousSize); /* rewrites the given flvtag in `bitstream`, starting at offset and replacing all `previousSize` bytes. */
   void appendVideoHeader(FLVTag& tag, BitStream& bitstream); /* appends the necessary data to the bitstream (bs) for the given tag, code flow is: writeVideoTag() --> writeFLVTag() { --> appendVideoHeader() } -->  */
@@ -89,6 +91,7 @@ class FLVWriter {
   size_t metadata_offset;  /* after adding all tags we can rewrite the metadata so it can adjust some fields it can only know when all frames have been written */
   size_t metadata_size;  /* the size of the metadata flv tag */
   uint32_t last_timestamp; /* we keep track of the last timestamp to reset the duration meta data field */
+  std::vector<uint8_t> audio_specific_config; /* this is related to AAC audio encoding; it contains the header for the AAC stream, must be set before you call open() */
   FLVListeners listeners; /* we will notify listeners whenever we generate a new FLVTag in the bitstream */
 };
 
@@ -172,6 +175,18 @@ inline void FLVWriter::addListener(FLVListener* l) {
   }
 
   listeners.addListener(l);
+}
+
+inline void FLVWriter::setAudioSpecificConfig(std::vector<uint8_t> asc) {
+
+#if !defined(NDEBUG) 
+  if(!asc.size()) {
+    printf("Settings the audio specific config in FLVWriter (for AAC audio), but the config data is empty! This is wrong.\n");
+    ::exit(EXIT_FAILURE);
+  }
+#endif
+
+  audio_specific_config = asc;
 }
 
 #endif

@@ -61,15 +61,21 @@
         <width>320</width>                      <!-- width of the output video -->
         <height>240</height>                    <!-- height of the output video -->
         <fps>15</fps>                           <!-- desired framerate to encode --> 
+
+        <!-- x264 settings -->
         <bitrate>400</bitrate>                  <!-- the bitrate you want to use for the video, in kbps --> 
         <threads>4</threads>                    <!-- the number of x264 encoder threads, set this to the number of logical cores -->
         <preset>veryfast</preset>               <!-- the x264 preset, use one of: ultrafast, superfast, veryfast, faster, fast, medium, slow, slower, placebo -->
         <tune>zerolatency,animation</tune>      <!-- the x264 tune, use one or more: film, animation, grain, stillimage, psnr, ssim, fastdecode, zerolatency -->
         <profile>baseline</profile>             <!-- the h264 profile: baseline, main, high, high10, high422, high444 --> 
-        <vbv_buffer_size>800</vbv_buffer_size>  <!-- the x264 vbv_buffer_size, used to control the bitrate. when not set we use the <bitrate> value -->
-        <vbv_max_bitrate>400</vbv_max_bitrate>  <!-- the x264 vbv_max_bitrate, set this to the same value as <bitrate> is this is the max bandwidth you've got. when not set we use the <bitrate> value. This value represents the max bitrate you video stream is allowed to peak at. -->
+        <vbv_buffer_size>800</vbv_buffer_size>  <!-- the x264 i_vbv_buffer_size, used to control the bitrate. when not set we use the <bitrate> value -->
+        <vbv_max_bitrate>400</vbv_max_bitrate>  <!-- the x264 i_vbv_max_bitrate, set this to the same value as <bitrate> is this is the max bandwidth you've got. when not set we use the <bitrate> value. This value represents the max bitrate you video stream is allowed to peak at. -->
+        <keyint_max>15</keyint_max>             <!-- the x264 i_keyint_max, use this to set the maximum interval at which a keyframe is inserted. if not set we use the defaults of x264. When HTTP Live Streaming (HLS) is used this influences buffering -->
+        <bframe>16</bframe>                     <!-- the x264 i_bframe, when specified we use this for the number of bframes; you don't have to specify this, note that profile must be main or higher, baseline does not support bframers, we default to -1 meaning we don't use bframes -->
+        <level_idc>31</level_idc>               <!-- the x264 i_level_idc, specifies the level for the profile, you don't need to set this, but when you do, use values like, 11 for 1.1, 30 for 3.0, 31 for 3.1 etc.. when no specified we default to -1 meaning we do not set the level_idc -->
       </video>
       <audio>
+        <codec>1</codec>                      <!-- codec: 1 = MP3, 2 = AAC, when not set we use MP3 as default, the values of the AV_AUDIO_COCEC_{MP3, AAC} etc.. are used. -->
         <samplerate>0</samplerate>            <!-- samplerate: 44100, 22050, 11025 -->
         <mode>0</mode>                        <!-- mode: mono = 1, stereo = 2 -->
         <bitsize>0</bitsize>                  <!-- bitsize: S8 = 0, S16 = 2, F32 = 3 -->

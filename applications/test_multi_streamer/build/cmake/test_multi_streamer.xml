@@ -5,48 +5,150 @@
   </settings>
   <streams>
 
-    <!-- Primary quality stream -->
+    <!-- 720p -->
+    <!--
     <stream>
       <id>0</id>
       <server>
-
-
-<!--
-        <url>rtmp://127.0.0.1/flvplayback/quality0</url>
--->
+        <url>rtmp://p.ep103224.i.akamaientrypoint.net/EntryPoint/nike_1_3000@103224</url>
+        <username>203268</username>
+        <password>test</password>
       </server>
       <video>
-
-        <width>856</width>
-        <height>480</height>
-
-        <!--
-        <width>856</width>
-        <height>480</height>
-
-        <width>640</width>
-        <height>360</height>
-        -->
-        <fps>15</fps>
-        <bitrate>100</bitrate>
-        <threads>2</threads>
-        <preset>faster</preset>
-        <tune>film,animation,zerolatency</tune>
-        <profile>baseline</profile>
-        <vbv_buffer_size>200</vbv_buffer_size>
-        <vbv_max_bitrate>200</vbv_max_bitrate>
+        <width>1280</width>
+        <height>720</height>
+        <fps>25</fps>
+        <bitrate>3076</bitrate>
+        <threads>4</threads>
+        <preset>superfast</preset>
+        <tune>zerolatency</tune>
+        <profile>main</profile>
+        <vbv_buffer_size>6152</vbv_buffer_size>
+        <vbv_max_bitrate>3076</vbv_max_bitrate>
+        <keyint_max>100</keyint_max>
+        <level_idc>32</level_idc>
       </video>
       <audio>
-        <samplerate>44100</samplerate>  <!-- samplerate: 44100, 22050, 11025 -->
-        <mode>2</mode> <!-- mode: mono = 1, stereo = 2 -->
-        <bitsize>2</bitsize> <!-- bitsize: S8 = 0, S16 = 2, F32 = 3 -->
-        <bitrate>64</bitrate> <!-- in kbps -->
+        <samplerate>44100</samplerate>
+        <mode>2</mode> 
+        <bitsize>2</bitsize>
+        <bitrate>32</bitrate>
         <quality>4</quality>
         <in_bitsize>0</in_bitsize>
         <in_interleaved>1</in_interleaved>
       </audio>
     </stream>
+    -->
+    <!-- 480p -->
+    <!-- 
+    <stream>
+      <id>1</id>
+      <server>
+        <url>rtmp://p.ep103224.i.akamaientrypoint.net/EntryPoint/nike_1_896@103224</url>
+        <username>203268</username>
+        <password>test</password>
+      </server>
+      <video>
+        <width>856</width>
+        <height>480</height>
+        <fps>25</fps>
+        <bitrate>764</bitrate>
+        <threads>4</threads>
+        <preset>superfast</preset>
+        <tune>zerolatency</tune>
+        <profile>main</profile>
+        <vbv_buffer_size>1528</vbv_buffer_size>
+        <vbv_max_bitrate>764</vbv_max_bitrate>
+        <keyint_max>100</keyint_max>
+        <level_idc>31</level_idc>
+      </video>
+      <audio>
+        <samplerate>44100</samplerate> 
+        <mode>2</mode> 
+        <bitsize>2</bitsize> 
+        <bitrate>32</bitrate>
+        <quality>4</quality>
+        <in_bitsize>0</in_bitsize>
+        <in_interleaved>1</in_interleaved>
+      </audio>
+    </stream>
+    -->
 
-    <!-- Secondary quality stream -->
+    <!-- 360p -->
+    <stream>
+      <id>2</id>
+      <server>
+
+        <url>rtmp://p.ep103224.i.akamaientrypoint.net/EntryPoint/nike_1_480@103224</url>
+        <username>203268</username>
+        <password>test</password>
+        <!--
+        <url>rtmp://localhost/flvplayback/quality0</url>
+        -->
+      </server>
+      <video>
+        <width>640</width>
+        <height>360</height>
+        <fps>25</fps>
+        <bitrate>384</bitrate>
+        <threads>4</threads>
+        <preset>superfast</preset>
+        <tune>zerolatency</tune>
+        <profile>main</profile>
+        <vbv_buffer_size>768</vbv_buffer_size>
+        <vbv_max_bitrate>384</vbv_max_bitrate>
+        <keyint_max>100</keyint_max>
+        <level_idc>30</level_idc>
+      </video>
+
+      <audio>
+        <codec>2</codec>
+        <samplerate>44100</samplerate>
+        <mode>2</mode>
+        <bitsize>2</bitsize> 
+        <bitrate>32</bitrate>
+        <quality>4</quality>
+        <in_bitsize>2</in_bitsize>
+        <in_interleaved>1</in_interleaved>
+      </audio>
+
+    </stream>
+
+
+    <!-- 240p -->
+    <!-- 
+    <stream>
+      <id>3</id>
+      <server>
+        <url>rtmp://p.ep103224.i.akamaientrypoint.net/EntryPoint/nike_1_224@103224</url>
+        <username>203268</username>
+        <password>test</password>
+      </server>
+      <video>
+        <width>426</width>
+        <height>240</height>
+        <fps>25</fps>
+        <bitrate>196</bitrate>
+        <threads>4</threads>
+        <preset>superfast</preset>
+        <tune>zerolatency</tune>
+        <profile>baseline</profile>
+        <vbv_buffer_size>392</vbv_buffer_size>
+        <vbv_max_bitrate>196</vbv_max_bitrate>
+        <keyint_max>100</keyint_max>
+        <level_idc>30</level_idc>
+      </video>
+      <audio>
+        <samplerate>44100</samplerate>
+        <mode>2</mode>
+        <bitsize>2</bitsize> 
+        <bitrate>32</bitrate>
+        <quality>4</quality>
+        <in_bitsize>0</in_bitsize>
+        <in_interleaved>1</in_interleaved>
+      </audio>
+    </stream>
+    -->
+
   </streams>
 </videostreamer>

@@ -12,9 +12,10 @@ void videostreamer_on_rtmp_disconnect(RTMPWriter* rtmp, void* user) {
 
 // ----------------------------------------------------------------------
 
-VideoStreamer::VideoStreamer() 
+VideoStreamer::VideoStreamer(AudioEncoder& audioEncoder) 
   :flv_writer(flv_bitstream)
   ,rtmp_thread(flv_writer, rtmp_writer)
+  ,audio_enc(audioEncoder)
   ,enc_thread(flv_writer, video_enc, audio_enc)
   ,state(VS_STATE_NONE)
   ,video_timeout(0)
@@ -119,11 +120,22 @@ bool VideoStreamer::setup() {
   }
 
   if(usesAudio()) {
+
+    if(audio_settings.codec_id == AV_AUDIO_CODEC_MP3) {
+      flv_writer.setAudioCodec(FLV_SOUNDFORMAT_MP3);
+    }
+    else if(audio_settings.codec_id == AV_AUDIO_CODEC_AAC) {
+      flv_writer.setAudioCodec(FLV_SOUNDFORMAT_AAC);
+    }
+    else {
+      STREAMER_ERROR("Cannot set the correct audio codec because neither MP3 or AAC was set.\n");
+      return false;
+    }
+
     if(!audio_enc.setup(audio_settings)) {
       return false;
     }
 
-    flv_writer.setAudioCodec(FLV_SOUNDFORMAT_MP3);
     flv_writer.setAudioDataRate(audio_settings.bitrate);
     flv_writer.setAudioSampleRate(encoder_samplerate_to_flv(audio_settings.samplerate));
     flv_writer.setAudioSize(encoder_audio_bitsize_to_flv(audio_settings.bitsize));
@@ -158,9 +170,16 @@ bool VideoStreamer::start() {
   }
 
   if(usesAudio()) {
+
     if(!audio_enc.initialize()) {
       return false;
     }
+    
+    if(audio_settings.codec_id == AV_AUDIO_CODEC_AAC) {
+      AudioEncoderFAAC& aac_enc = static_cast<AudioEncoderFAAC&>(audio_enc);
+      flv_writer.setAudioSpecificConfig(aac_enc.getAudioSpecificConfig());
+    }
+
   }
 
   if(output_file.size() && !flv_file_writer) {

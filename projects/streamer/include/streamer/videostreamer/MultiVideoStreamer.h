@@ -62,6 +62,8 @@
 #define ROXLU_MULTI_VIDEOSTREAMER_H
 
 #include <streamer/core/MemoryPool.h>
+#include <streamer/core/AudioEncoderMP3.h>
+#include <streamer/core/AudioEncoderFAAC.h>
 #include <streamer/videostreamer/VideoStreamer.h>
 #include <streamer/videostreamer/VideoStreamerConfig.h>
 #include <vector>
@@ -70,6 +72,7 @@
 
 struct MultiStreamerInfo { /* contains all the necessary information for one video streamer to "run", everythin is owned and managed by the MultiVideoStreamer instance  */
   MultiStreamerInfo();
+  AudioEncoder* audio_encoder;
   VideoStreamer* streamer;
   int32_t id;
 };

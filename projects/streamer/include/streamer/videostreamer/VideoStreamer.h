@@ -50,6 +50,8 @@ extern "C" {
 #include <streamer/core/EncoderTypes.h>
 #include <streamer/core/VideoEncoder.h>
 #include <streamer/core/AudioEncoder.h>
+#include <streamer/core/AudioEncoderMP3.h>
+#include <streamer/core/AudioEncoderFAAC.h>
 #include <streamer/core/RTMPWriter.h>
 #include <streamer/core/RTMPThread.h>
 #include <streamer/core/EncoderThread.h>
@@ -71,7 +73,7 @@ void videostreamer_on_rtmp_disconnect(RTMPWriter* rtmp, void* user); /* gets cal
 
 class VideoStreamer {
  public:
-  VideoStreamer();
+  VideoStreamer(AudioEncoder& audioEncoder);
   ~VideoStreamer();
 
   /* these functions must be called before you call setup() ! */
@@ -114,7 +116,7 @@ class VideoStreamer {
   FLVFileWriter* flv_file_writer;  /* when `setOutputFile()` is called we will dump the generated FLV to a file */
   RTMPWriter rtmp_writer;          /* used by the rtmp_thread to stream rtmp packets */
   VideoEncoder video_enc;          /* the video encoder, used in the encoder thread */
-  AudioEncoder audio_enc;          /* the audio encoder, used in the encoder thread */
+  AudioEncoder& audio_enc;         /* the audio encoder, used in the encoder thread */
   EncoderThread enc_thread;        /* encoder thread, encodes audio and video */
   RTMPThread rtmp_thread;          /* thread that is writing rtmp packets to a server */
   VideoSettings video_settings;    /* used by the video encoder */

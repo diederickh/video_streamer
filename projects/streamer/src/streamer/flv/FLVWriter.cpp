@@ -47,6 +47,17 @@ bool FLVWriter::open() {
   writeHeader(bs);
   writeMetaData(bs);
   writeDecoderConfigurationRecord(bs);
+
+  if(audio_codec == FLV_SOUNDFORMAT_AAC) {
+
+    if(audio_specific_config.size() == 0) {
+      printf("error: you're specified to use AAC audio for the FLVWriter, but we did not yet receive the audio specific config.\n");
+      return false;
+    }
+
+    writeAudioSpecificConfig(bs);
+  }
+
   return true;
 }
 
@@ -157,6 +168,22 @@ void FLVWriter::writeDecoderConfigurationRecord(BitStream& s) {
   writeFLVTag(tag, s);
 }
 
+// writes AAC audio codec config
+void FLVWriter::writeAudioSpecificConfig(BitStream& s) {
+  FLVTag tag;
+
+  tag.setAudioCodec(audio_codec);
+  tag.setAACPacketType(FLV_AAC_CONFIG);
+  tag.setCompositionTime(0);
+  tag.makeAudioTag();
+  tag.setTimeStamp(0,0);
+
+  tag.bs.putBytes(&audio_specific_config.front(), audio_specific_config.size());
+  tag.setData(tag.bs.getPtr(), tag.bs.size());
+ 
+  writeFLVTag(tag, s);
+}
+
 void FLVWriter::rewriteMetaData() {
   BitStream bs_md;
   createMetaData(bs_md);
@@ -238,7 +265,7 @@ void FLVWriter::appendVideoHeader(FLVTag& tag, BitStream& s) {
   
   if(tag.codec_id != FLV_VIDEOCODEC_AVC) {
     printf("error: cannot write the video header, we only implement the AVC video codec, you gave %d, FLV_VIDEOCODEC_AVC = %d\n", tag.codec_id, FLV_VIDEOCODEC_AVC);
-      return;
+    ::exit(EXIT_FAILURE);
   }
 
   s.putU8(tag.avc_packet_type);
@@ -246,10 +273,24 @@ void FLVWriter::appendVideoHeader(FLVTag& tag, BitStream& s) {
 }
 
 void FLVWriter::appendAudioHeader(FLVTag& tag, BitStream& s) {
+  // @todo - when the audio codec is AAC and and sound_type != stereo or samplerate != 44khz we need to stop directly! with AAC we to set stereo+44hz ( but the data may contain a different format ^.^ )
   s.putBits(tag.sound_format, 4);
   s.putBits(audio_samplerate, 2);
   s.putBit(audio_size == FLV_SOUNDSIZE_16BIT);
   s.putBit(audio_type == FLV_SOUNDTYPE_STEREO);
+
+  if(audio_codec == FLV_SOUNDFORMAT_AAC) {
+
+#if !defined(NDEBUG)
+    if(tag.aac_packet_type != FLV_AAC_CONFIG && tag.aac_packet_type != FLV_AAC_RAW_DATA) {
+      printf("error: you're trying to add a AAC audio packet but the `aac_packet_type` is not set to a valid valid: %d\n", tag.aac_packet_type);
+      ::exit(EXIT_FAILURE);
+    }
+#endif
+
+    s.putU8(tag.aac_packet_type); 
+
+  }
 }
 
 bool FLVWriter::validateAudioSettings() {

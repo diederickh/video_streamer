@@ -78,6 +78,9 @@ VideoSettings::VideoSettings()
   ,threads(1)
   ,vbv_buffer_size(-1)
   ,vbv_max_bitrate(-1)
+  ,keyint_max(-1)
+  ,bframe(-1)
+  ,level_idc(-1)
 {
 
 }
@@ -106,7 +109,8 @@ void VideoSettings::print() {
 // -----------------------------------------
 
 AudioSettings::AudioSettings()
-  :samplerate(AV_AUDIO_SAMPLERATE_UNKNOWN)
+  :codec_id(AV_AUDIO_CODEC_UNKNOWN)
+  ,samplerate(AV_AUDIO_SAMPLERATE_UNKNOWN)
   ,mode(AV_AUDIO_MODE_UNKNOWN)
   ,bitsize(AV_AUDIO_BITSIZE_UNKNOWN)
   ,quality(5) 
@@ -129,22 +133,27 @@ void AudioSettings::print() {
 
 bool AudioSettings::validate() {
   if(samplerate == AV_AUDIO_SAMPLERATE_UNKNOWN) {
-    STREAMER_WARNING("audiosettings: no samplerate set.\n");
+    STREAMER_ERROR("audiosettings: no samplerate set.\n");
     return false;
   }
 
   if(mode == AV_AUDIO_MODE_UNKNOWN) {
-    STREAMER_WARNING("audiosettings: no audio mode set.\n");
+    STREAMER_ERROR("audiosettings: no audio mode set.\n");
     return false;
   }
 
   if(bitsize == AV_AUDIO_BITSIZE_UNKNOWN) {
-    STREAMER_WARNING("audiosettings: no bitsize set.\n");
+    STREAMER_ERROR("audiosettings: no bitsize set.\n");
+    return false;
+  }
+
+  if(codec_id == AV_AUDIO_CODEC_UNKNOWN) {
+    STREAMER_ERROR("audiosettings: no codec id set.\n");
     return false;
   }
 
   if(!bitrate) {
-    STREAMER_WARNING("audiosettings: no bitrate set.\n");
+    STREAMER_ERROR("audiosettings: no bitrate set.\n");
     return false;
   }
 

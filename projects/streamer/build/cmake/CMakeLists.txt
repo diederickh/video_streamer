@@ -30,6 +30,8 @@ set(streamer_source_files
   ${streamer_source_dir}/core/Debug.cpp
   ${streamer_source_dir}/core/VideoEncoder.cpp
   ${streamer_source_dir}/core/AudioEncoder.cpp
+  ${streamer_source_dir}/core/AudioEncoderMP3.cpp
+  ${streamer_source_dir}/core/AudioEncoderFAAC.cpp
   ${streamer_source_dir}/core/EncoderTypes.cpp
   ${streamer_source_dir}/core/TestPattern.cpp
   ${streamer_source_dir}/core/H264Parser.cpp
@@ -37,10 +39,10 @@ set(streamer_source_files
   ${streamer_source_dir}/core/EncoderThread.cpp
   ${streamer_source_dir}/core/RTMPThread.cpp
   ${streamer_source_dir}/core/Log.cpp
-  ${streamer_source_dir}/daemon/Daemon.cpp
-  ${streamer_source_dir}/daemon/DaemonConfig.cpp
-  ${streamer_source_dir}/daemon/Runner.cpp
-  ${streamer_source_dir}/daemon/Channel.cpp
+# ${streamer_source_dir}/daemon/Daemon.cpp
+# ${streamer_source_dir}/daemon/DaemonConfig.cpp
+# ${streamer_source_dir}/daemon/Runner.cpp
+# ${streamer_source_dir}/daemon/Channel.cpp
   ${streamer_source_dir}/videostreamer/VideoStreamer.cpp
   ${streamer_source_dir}/videostreamer/VideoStreamerConfig.cpp
   ${streamer_source_dir}/videostreamer/MultiVideoStreamer.cpp
@@ -64,6 +66,7 @@ if(APPLE)
   set(streamer_libraries
     ${extern_dir}/lib/libx264.a
     ${extern_dir}/lib/libmp3lame.a
+    ${extern_dir}/lib/libfaac.a
     ${extern_dir}/lib/librtmp.a
     ${extern_dir}/lib/libssl.a
     ${extern_dir}/lib/libcrypto.a
