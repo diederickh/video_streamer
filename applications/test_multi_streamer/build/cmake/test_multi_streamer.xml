@@ -6,7 +6,6 @@
   <streams>
 
     <!-- 720p -->
-    <!--
     <stream>
       <id>0</id>
       <server>
@@ -25,22 +24,23 @@
         <profile>main</profile>
         <vbv_buffer_size>6152</vbv_buffer_size>
         <vbv_max_bitrate>3076</vbv_max_bitrate>
-        <keyint_max>100</keyint_max>
+        <keyint_max>25</keyint_max>
         <level_idc>32</level_idc>
       </video>
       <audio>
+        <codec>2</codec>
         <samplerate>44100</samplerate>
         <mode>2</mode> 
         <bitsize>2</bitsize>
         <bitrate>32</bitrate>
         <quality>4</quality>
-        <in_bitsize>0</in_bitsize>
+        <in_bitsize>2</in_bitsize>
         <in_interleaved>1</in_interleaved>
       </audio>
     </stream>
-    -->
+
+
     <!-- 480p -->
-    <!-- 
     <stream>
       <id>1</id>
       <server>
@@ -63,28 +63,30 @@
         <level_idc>31</level_idc>
       </video>
       <audio>
+        <codec>2</codec>
         <samplerate>44100</samplerate> 
         <mode>2</mode> 
         <bitsize>2</bitsize> 
         <bitrate>32</bitrate>
         <quality>4</quality>
-        <in_bitsize>0</in_bitsize>
+        <in_bitsize>2</in_bitsize>
         <in_interleaved>1</in_interleaved>
       </audio>
     </stream>
-    -->
+
+
+        <!--
+        <url>rtmp://localhost/flvplayback/quality0</url>
+        -->
+
 
     <!-- 360p -->
     <stream>
       <id>2</id>
       <server>
-
         <url>rtmp://p.ep103224.i.akamaientrypoint.net/EntryPoint/nike_1_480@103224</url>
         <username>203268</username>
         <password>test</password>
-        <!--
-        <url>rtmp://localhost/flvplayback/quality0</url>
-        -->
       </server>
       <video>
         <width>640</width>
@@ -111,12 +113,11 @@
         <in_bitsize>2</in_bitsize>
         <in_interleaved>1</in_interleaved>
       </audio>
-
     </stream>
 
 
     <!-- 240p -->
-    <!-- 
+
     <stream>
       <id>3</id>
       <server>
@@ -139,16 +140,17 @@
         <level_idc>30</level_idc>
       </video>
       <audio>
+        <codec>2</codec>
         <samplerate>44100</samplerate>
         <mode>2</mode>
         <bitsize>2</bitsize> 
         <bitrate>32</bitrate>
         <quality>4</quality>
-        <in_bitsize>0</in_bitsize>
+        <in_bitsize>2</in_bitsize>
         <in_interleaved>1</in_interleaved>
       </audio>
     </stream>
-    -->
+
 
   </streams>
 </videostreamer>
