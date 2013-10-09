@@ -14,6 +14,7 @@ This library makes use of the following libraries:
 - glxw (only for opengl apps)
 - glfw3 (only for opengl apps)
 - mp3lame 
+- libfaac
 - libyuv
 - openssl
 - zlib

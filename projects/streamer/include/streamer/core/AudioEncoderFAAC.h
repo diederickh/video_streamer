@@ -28,6 +28,11 @@
   settings. Then start feeding audio packets and when ready you call shutdown() to free 
   up all the used memory.
 
+  IMPORTANT: 
+  You can use AV_AUDIO_BITSIZE_S16 or AV_AUDIO_BITSIZE_F32. When using F32, we expect
+  the values to be scaled into a range of -32768.0f to 32768.0f. If your values are 
+  -1.0f to 1.0f, just loop over them and scale them by 32768.0f. Or use SSE
+
 */
 
 
@@ -53,26 +58,26 @@ class AudioEncoderFAAC : public AudioEncoder {
  public:
   AudioEncoderFAAC();
   ~AudioEncoderFAAC();
-  void setOutputFile(std::string filepath); /* when you want to write the encoded data to a file, set the output file. */
-  bool setup(AudioSettings s); /* provide the AudioEncoderFAAC encoder with all the necessary settings; it will return when the settings are invalid OR when libfaac cannot handle them */
-  bool initialize(); /* after specifying all the settings, call initialize to create an instance of the encoder; this allocates memory which should be freed by shutdown, which closes the encoder */
-  bool shutdown(); /* frees all allocated memory */
-  void print(); /* provide us with some debug info */
-  bool encodePacket(AVPacket* p, FLVTag& tag); /* encode the given data into "tag" */
-  unsigned long getSamplesNeededForEncoding(); /* get the number of framers we need to pass into encodePacket(). You should use this value for your audio input callback, so you get this number of samples everytime you want to encode something; or you need to keep a custom buffer and make sure it has enough data in it before encoding it */
-  std::vector<uint8_t> getAudioSpecificConfig(); /* return the AAC audio specific config. This is e.g. used in the FLV stream, we simple return the result from `faacEncGetDecoderSpecificInfo()` */
+  void setOutputFile(std::string filepath);       /* when you want to write the encoded data to a file, set the output file. */
+  bool setup(AudioSettings s);                    /* provide the AudioEncoderFAAC encoder with all the necessary settings; it will return when the settings are invalid OR when libfaac cannot handle them */
+  bool initialize();                              /* after specifying all the settings, call initialize to create an instance of the encoder; this allocates memory which should be freed by shutdown, which closes the encoder */
+  bool shutdown();                                /* frees all allocated memory */
+  void print();                                   /* provide us with some debug info */
+  bool encodePacket(AVPacket* p, FLVTag& tag);    /* encode the given data into "tag". When you're using AV_AUDIO_BITSIZE_F32 and your audio is in a range of -1.0f, 1.0f, you need to upscale if by 32768.0f (just a simple loop) */
+  unsigned long getSamplesNeededForEncoding();    /* (call this after you've called initialize())  get the number of framers we need to pass into encodePacket(). You should use this value for your audio input callback, so you get this number of samples everytime you want to encode something; or you need to keep a custom buffer and make sure it has enough data in it before encoding it.  */
+  std::vector<uint8_t> getAudioSpecificConfig();  /* return the AAC audio specific config. This is e.g. used in the FLV stream, we simple return the result from `faacEncGetDecoderSpecificInfo()` */
  private:
-  bool validateSettings(AudioSettings& s); /* validates the given audio settings so we're sure that libfaac can use them */
-  uint8_t getNumChannels(); /* determines the number of channels that we need to use, base on the settings.mode member. only detect 1 or 2 channels  */
+  bool validateSettings(AudioSettings& s);        /* validates the given audio settings so we're sure that libfaac can use them */
+  uint8_t getNumChannels();                       /* determines the number of channels that we need to use, base on the settings.mode member. only detect 1 or 2 channels  */
  private:
-  unsigned long nsamples_needed; /* the number of samples that the faac encoder needs for each encode() call */
-  unsigned long nbytes_out; /* the total number of bytes that can be produces by a encoder() call */
-  unsigned char* faac_buffer; /* the buffer into which we write the faac data, is created in initialize(), freed in shutdown() */
+  unsigned long nsamples_needed;                  /* the number of samples that the faac encoder needs for each encode() call */
+  unsigned long nbytes_out;                       /* the total number of bytes that can be produces by a encoder() call */
+  unsigned char* faac_buffer;                     /* the buffer into which we write the faac data, is created in initialize(), freed in shutdown() */
   faacEncHandle encoder;
   AudioSettings settings;
-  std::string output_file; /* when setOutputFile() is called this is set to that value */
-  std::ofstream ofs; /* used for debugging purposes, when setOutputFile() is used we write the encoded data to this file. */
-  std::vector<uint8_t> audio_specific_config; /* the AAC specific config, used in the FLV bitstream when AAC is used. */
+  std::string output_file;                        /* when setOutputFile() is called this is set to that value */
+  std::ofstream ofs;                              /* used for debugging purposes, when setOutputFile() is used we write the encoded data to this file. */
+  std::vector<uint8_t> audio_specific_config;     /* the AAC specific config, used in the FLV bitstream when AAC is used. */
 };
 
 inline uint8_t AudioEncoderFAAC::getNumChannels() {

@@ -17,7 +17,7 @@
 ---------------------------------------------------------------------------------
  
 
-  # ofxVideoStreamerScreenCapture
+  # ofxVideoStreamer
 
   This class is a basic and simple to use wrapper around the 
   Video Streamer library (git@github.com:roxlu/video_streamer.git) for
@@ -105,7 +105,7 @@
   }
 
   void testApp::draw(){
-    if(streamer.hasNewFrame()) {
+    if(streamer.wantsNewFrame()) {
       streamer.beginGrab();
         drawVideo();
       streamer.endGrab();
@@ -118,39 +118,47 @@
   
 
  */
-#ifndef ROXLU_OFXVIDEOSTREAMER_SCREEN_CAPTURE_H
-#define ROXLU_OFXVIDEOSTREAMER_SCREEN_CAPTURE_H
+#ifndef ROXLU_OFXVIDEOSTREAMER_H
+#define ROXLU_OFXVIDEOSTREAMER_H
 
 #include "ofMain.h"
 
 #include <streamer/videostreamer/VideoStreamer.h>
 #include <streamer/core/MemoryPool.h>
+#include <streamer/core/AudioEncoderFAAC.h>
 #include <hwscale/opengl/YUV420PGrabber.h>
 #include <string>
 
-class ofxVideoStreamerScreenCapture {
+class ofxVideoStreamer {
  public:
-  ofxVideoStreamerScreenCapture();
-  ~ofxVideoStreamerScreenCapture();
+  ofxVideoStreamer();
+  ~ofxVideoStreamer();
 
   bool setup(std::string settingsFile, int winW, int winH, int vidW, int vidH);
   bool start();
 
-  bool hasNewFrame();
+  bool wantsNewFrame(); 
   void beginGrab();
   void endGrab();
   void draw();
-  void addAudio(float* input, int nsize, int nchannels); /* input is the audio buffer from OF, nsize number of frames and nchannels the number of channels must be 2 */
+  unsigned long getNumSamplesNeededForAudioEncoding();     /* the audio encoder (AAC) needs a fixed set of audio sample for each 'encoding' call. this function returns the number of samples. call this after you've called setup(). Simply divide by the number of channels to get the number of frames per encoding step */
+  void addAudio(float* input, int nsize, int nchannels);   /* input is the audio buffer from OF, nsize number of frames and nchannels the number of channels must be 2, when using AAC you must scale this value! see the AAC encoder */
 
  private:
+  AudioEncoderFAAC aac;                                    /* the ofxVideoStreamer only works with the AAC encoder to maximize compatibility (with HLS streaming to ios for example) */
   VideoStreamer streamer;
   YUV420PGrabber grabber;
   MemoryPool memory_pool;
   bool has_new_frame;
-  bool has_allocated_audio_pool; /* we allocate the audio pool when we receive the first audio frame, @todo move this to setup() */
+  bool has_allocated_audio_pool;                           /* we allocate the audio pool when we receive the first audio frame, @todo move this to setup() */
 };
 
-inline bool ofxVideoStreamerScreenCapture::hasNewFrame() {
+inline bool ofxVideoStreamer::wantsNewFrame() {
   return grabber.hasNewFrame();
 }
+
+inline unsigned long ofxVideoStreamer::getNumSamplesNeededForAudioEncoding() {
+  return aac.getSamplesNeededForEncoding();
+}
+
 #endif

@@ -58,12 +58,12 @@ class VideoEncoder {
  public:
   VideoEncoder();
   ~VideoEncoder();
-  bool setup(VideoSettings settings); /* set state that is used in initialize() */
-  void setStreamID(int32_t id); /* set the id of the stream for which this VideoEncoder is used. When doing multiple video streams (different qualities per stream), each stream uses an unique ID. */
-  bool initialize(); /* initialize all members, first set all state (e.g. call setup()) */
+  bool setup(VideoSettings settings);           /* set state that is used in initialize() */
+  void setStreamID(int32_t id);                 /* set the id of the stream for which this VideoEncoder is used. When doing multiple video streams (different qualities per stream), each stream uses an unique ID. */
+  bool initialize();                            /* initialize all members, first set all state (e.g. call setup()) */
   bool createDecoderConfigurationRecord(AVCDecoderConfigurationRecord& rec); /* generates the SPS and PPS nal units */
   bool encodePacket(AVPacket* p, FLVTag& result);
-  bool shutdown(); /* deinitialize everything, this is necessary if you want to reinitialize the encoder */
+  bool shutdown();                              /* deinitialize everything, this is necessary if you want to reinitialize the encoder */
   bool openFile(std::string filepath);
   bool writeTagToFile(FLVTag& tag);
   bool closeFile();
@@ -74,15 +74,15 @@ class VideoEncoder {
   bool initializeX264();
 
  private:
-  x264_t* encoder; /* our x264 encoder instance ... */
-  x264_param_t params; /* parameters that we pass into the x264 encoder */
-  x264_picture_t pic_in; /* passed -into- the encoder */
-  x264_picture_t pic_out; /* contains an encoded picture */
-  VideoSettings settings; /* the video settings like width, height, bitrate etc.. */
-  bool vflip; /* flip video, defaults to true */
-  uint32_t frame_num; /* current encoded frame number */
-  int32_t stream_id; /* an AVPacket might contain video data for multiple quality streams (multi streams). Each stream uses its own VideoEncoder instance with the correct parameters. By setting the stream id to a value >= 0 (see setStreamID()), we will select the correct strides and planes from the AVPacket data */
-  std::ofstream ofs; /* only used when writing to a file */
+  x264_t* encoder;            /* our x264 encoder instance ... */
+  x264_param_t params;        /* parameters that we pass into the x264 encoder */
+  x264_picture_t pic_in;      /* passed -into- the encoder */
+  x264_picture_t pic_out;     /* contains an encoded picture */
+  VideoSettings settings;     /* the video settings like width, height, bitrate etc.. */
+  bool vflip;                 /* flip video, defaults to true */
+  uint32_t frame_num;         /* current encoded frame number */
+  int32_t stream_id;          /* an AVPacket might contain video data for multiple quality streams (multi streams). Each stream uses its own VideoEncoder instance with the correct parameters. By setting the stream id to a value >= 0 (see setStreamID()), we will select the correct strides and planes from the AVPacket data */
+  std::ofstream ofs;          /* only used when writing to a file */
 };
 
 inline uint8_t VideoEncoder::getFPS() {

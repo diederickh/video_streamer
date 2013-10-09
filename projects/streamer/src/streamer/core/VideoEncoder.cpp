@@ -1,3 +1,8 @@
+
+extern "C" {
+#  include <uv.h>
+}
+
 #include <assert.h>
 #include <streamer/core/VideoEncoder.h>
 #include <streamer/core/Debug.h>
@@ -7,6 +12,7 @@
 #if defined(USE_GRAPH)
 #  include <streamer/utils/Graph.h>
 #endif
+
 
 // --------------------------------------------------
 
@@ -158,9 +164,22 @@ bool VideoEncoder::encodePacket(AVPacket* p, FLVTag& tag) {
   assert(p);
   assert(encoder);
 
-  if(stream_id >= 0) {
+  if(p->isMulti()) {
 
     MultiAVPacketInfo info = p->multi_info[stream_id];
+
+#if !defined(NDEBUG) 
+    if(stream_id <0) {
+      STREAMER_ERROR("The given packet is a multi packet but the video encoder does not know what strides/planes to use from the multi info because no stream id has been set.\n");
+      ::exit(EXIT_FAILURE);
+    }
+
+    if(info.planes[0] == NULL || info.planes[1] == NULL || info.planes[2] == NULL) {
+      STREAMER_ERROR("The given packet is a multi packet, but the plane pointers are set to NULL which is not valid. Stopping now.\n");
+      ::exit(EXIT_FAILURE);
+    }
+#endif
+
     pic_in.img.i_stride[0] = info.strides[0];
     pic_in.img.i_stride[1] = info.strides[1];
     pic_in.img.i_stride[2] = info.strides[2];
@@ -171,6 +190,13 @@ bool VideoEncoder::encodePacket(AVPacket* p, FLVTag& tag) {
 
   }
   else {
+
+#if !defined(NDEBUG)
+    if(p->planes[0] == NULL || p->planes[1] == NULL || p->planes[2] == NULL) {
+      STREAMER_ERROR("The planes in the AVPacket that the VideoEncoder wants to encoder are set to NULL! This is not valid. Stopping now.\n");
+      ::exit(EXIT_FAILURE);
+    }
+#endif
 
     pic_in.img.i_stride[0] = p->strides[0];
     pic_in.img.i_stride[1] = p->strides[1];

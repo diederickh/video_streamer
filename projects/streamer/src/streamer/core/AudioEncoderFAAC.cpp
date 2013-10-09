@@ -69,7 +69,17 @@ bool AudioEncoderFAAC::initialize() {
   config->quantqual = 100; 
   config->bitRate = settings.bitrate * 1000 / getNumChannels();
   config->outputFormat = 0; // 0 = Raw, 1 = ADTS
-  config->inputFormat = FAAC_INPUT_16BIT; 
+
+  if(settings.in_bitsize == AV_AUDIO_BITSIZE_S16) {
+    config->inputFormat = FAAC_INPUT_16BIT; 
+  }
+  else if(settings.in_bitsize == AV_AUDIO_BITSIZE_F32) {
+    config->inputFormat = FAAC_INPUT_FLOAT;
+  }
+  else {
+    STREAMER_ERROR("Cannot initialize the AudioEncoderFAAC because the in_bitsize is invalid. we only support S16 of F32.\n");
+    ::exit(EXIT_FAILURE);
+  }
 
   int r = faacEncSetConfiguration(encoder, config);
   if(!r) {
@@ -162,8 +172,8 @@ bool AudioEncoderFAAC::shutdown() {
 }
 
 bool AudioEncoderFAAC::validateSettings(AudioSettings& s) {
-  if(s.bitsize != AV_AUDIO_BITSIZE_S16) {
-    STREAMER_ERROR("Cannot setup the AudioEncoderFAAC because we only support AV_AUDIO_BITSIZE_S16 for the bitsize for now.\n");
+  if(s.in_bitsize != AV_AUDIO_BITSIZE_S16 && s.in_bitsize != AV_AUDIO_BITSIZE_F32) {
+    STREAMER_ERROR("Cannot setup the AudioEncoderFAAC use either AV_AUDIO_BITSIZE_S16 or AV_AUDIO_BITSIZE_F32 for the in_bitsize.\n");
     return false;
   }
 
@@ -172,10 +182,12 @@ bool AudioEncoderFAAC::validateSettings(AudioSettings& s) {
     return false;
   }
 
+  /*
   if(s.bitsize != s.in_bitsize) {
     STREAMER_ERROR("Cannot setup AudioEncoderFAAC because the given in_bitsize is invalid.\n");
     return false;
   }
+  */
 
   if(s.samplerate == AV_AUDIO_SAMPLERATE_UNKNOWN) {
     STREAMER_ERROR("Cannot setup AudioEncoderFAAC because the given samplerate is invalid.\n");

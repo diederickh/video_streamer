@@ -72,12 +72,13 @@ struct AVPacket {
   void makeAudioPacket();
   void setTimeStamp(uint32_t ts);
 
-  void makeMulti();  /* when on AVPacket contains the video data for multiple video streams, you can make it a multi video packet and set the multi strides/planes members so that the VideoEncoder will set the correct strides */
-  void clearMulti();         /* used by the multi video streamer - removes the currently set multi info members */
+  void makeMulti();                                         /* when on AVPacket contains the video data for multiple video streams, you can make it a multi video packet and set the multi strides/planes members so that the VideoEncoder will set the correct strides */
+  void clearMulti();                                        /* used by the multi video streamer - removes the currently set multi info members */
   void addMulti(uint32_t streamID, MultiAVPacketInfo info); /* used by the multi video streamer - add a new multi info for the given stream */
+  bool isMulti();                                           /* check wether this is a multi packet (meaning that AVPacket::data contains pixels for multiple video streams and the strides/offsets are used to point to the correct planes */
 
   void addRef(int count = 1); /* call addRef when you want to hold on to this data for a while, when ready call Release */
-  void release();  /* call Release when you don't use this packet anymore, so the memory pool can reuse  it */
+  void release();             /* call Release when you don't use this packet anymore, so the memory pool can reuse  it */
   
   void copy(uint8_t* buf, size_t nbytes); /* copy the given bytes to `data` */
 
@@ -185,6 +186,8 @@ inline void AVPacket::addMulti(uint32_t streamID, MultiAVPacketInfo info) {
   multi_info[streamID] = info;
 }
 
-
+inline bool AVPacket::isMulti() {
+  return is_multi;
+}
 
 #endif
