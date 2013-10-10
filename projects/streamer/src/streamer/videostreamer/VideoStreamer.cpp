@@ -24,7 +24,6 @@ VideoStreamer::VideoStreamer(AudioEncoder& audioEncoder)
   ,flv_file_writer(NULL)
   ,stream_id(-1)
 {
-  printf("~VideoStreamer\n");
 }
 
 VideoStreamer::~VideoStreamer() {
@@ -215,6 +214,7 @@ bool VideoStreamer::start() {
 
   video_timeout = uv_hrtime() + video_delay;
   time_started = uv_hrtime();
+
   return true;
 }
 

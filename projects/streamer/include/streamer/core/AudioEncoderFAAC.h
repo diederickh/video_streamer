@@ -49,6 +49,8 @@
 #include <fstream>
 #include <vector>
 
+#define FAAC_ENCODER_MEASURE_BITRATE 1  /* when set to 1 we will measure how many kbps the faac encoder produces */
+
 std::string faac_debug_mpeg_version_to_string(int v);
 std::string faac_debug_object_type_to_string(int v);
 std::string faac_debug_input_format_to_string(int v);
@@ -78,6 +80,15 @@ class AudioEncoderFAAC : public AudioEncoder {
   std::string output_file;                        /* when setOutputFile() is called this is set to that value */
   std::ofstream ofs;                              /* used for debugging purposes, when setOutputFile() is used we write the encoded data to this file. */
   std::vector<uint8_t> audio_specific_config;     /* the AAC specific config, used in the FLV bitstream when AAC is used. */
+
+#if FAAC_ENCODER_MEASURE_BITRATE 
+  uint64_t kbps_timeout;      /* the timeout - when we will check the current kpbs */
+  uint64_t kbps_delay;        /* the time between each interval that we check the current bitrate, in nano sec */
+  uint64_t kbps_nbytes;       /* the total bytes generated */
+  uint64_t kbps_time_started; /* when we started encoding, first packet */
+  double kbps;                /* the actual kbps value */
+#endif
+
 };
 
 inline uint8_t AudioEncoderFAAC::getNumChannels() {

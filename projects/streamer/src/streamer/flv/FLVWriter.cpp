@@ -72,7 +72,7 @@ bool FLVWriter::close() {
     rewriteMetaData();
   }
 
-  printf("FLVWriter::close() -- %ld\n", bs.size());
+  //printf("FLVWriter::close() -- %ld\n", bs.size());
 
   return true;
 }
@@ -160,10 +160,9 @@ void FLVWriter::writeDecoderConfigurationRecord(BitStream& s) {
   tag.bs.putU8(1);                                           // numberOfPictureParameterSets
   tag.bs.putU16(ToBE16(avc_cfg.pps.size()));                 // pictureParameterSetLength
   tag.bs.putBytes(&avc_cfg.pps.front(), avc_cfg.pps.size()); // pictureParameterSetNLAUnit
-  tag.bs.print(100);
   tag.setData(tag.bs.getPtr(), tag.bs.size());
-  
-  print_decoder_configuration_record(&avc_cfg);
+
+  //print_decoder_configuration_record(&avc_cfg);
 
   writeFLVTag(tag, s);
 }

@@ -179,8 +179,10 @@ VideoStreamer depends on the following libraries:
 - openssl 
 - zlib
 - lamemp3
+- faac
 - nanomsg
 - rapidxml
+- png (only for testing purposes)
 
 ### Setup Wowza for live streaming
 

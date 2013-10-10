@@ -2,6 +2,11 @@
 #include <iostream>
 #include <hwscale/opengl/YUV420PGrabber.h>
 
+#define YUVGRABBER_WRITE_FIRST_FRAME_AS_PNG 0
+#if YUVGRABBER_WRITE_FIRST_FRAME_AS_PNG
+#include <tinylib/tinylib.h>
+#endif
+
 #if !defined(YUV420P_USE_APPLE_VAO)
 #  define YUV420P_USE_APPLE_VAO 0
 #endif
@@ -43,7 +48,9 @@ void YUV420PSize::print() {
   printf("y viewport (x,y): %d, %d\n", y_viewport_x, y_viewport_y);
   printf("u viewport (x,y): %d, %d\n", u_viewport_x, u_viewport_y);
   printf("v viewport (x,y): %d, %d\n", v_viewport_x, v_viewport_y);
-
+  printf("strides[0]: %d\n", strides[0]);
+  printf("strides[1]: %d\n", strides[1]);
+  printf("strides[2]: %d\n", strides[2]);
   printf("\n");
 }
 
@@ -255,7 +262,7 @@ bool YUV420PGrabber::setupSizes() {
   tex_h = max_h;
 
   // determine the viewports into which this part must be drawn.
-  printf("YUV420PGrabber: tex_h: %d, tex_w: %d\n", tex_h, tex_w);
+  //printf("YUV420PGrabber: tex_h: %d, tex_w: %d\n", tex_h, tex_w);
 
   std::sort(sizes.begin(), sizes.end(), YUV420PSize());
   int offset_y = 0;
@@ -313,8 +320,6 @@ bool YUV420PGrabber::setupFBO() {
   assert(win_w && win_h && scene_fbo == 0);
   assert(yuv_tex);
   assert(tex_w && tex_h);
-
-  printf("glGenFramebufers in YUV420PGrabber: %p\n", glGenFramebuffers);
 
   glGenFramebuffers(1, &scene_fbo);
   glBindFramebuffer(GL_FRAMEBUFFER, scene_fbo);
@@ -548,14 +553,23 @@ void YUV420PGrabber::endGrab() {
 
 void YUV420PGrabber::downloadTextures() {
 
+  // @todo we could see if this is faster: `glBindTexture(GL_TEXTURE_2D, yuv_tex); glGetTexImage(GL_TEXTURE_2D, 0, GL_RED, GL_UNSIGNED_BYTE, image);`
   // simple synchronous download, we could use PBOs for async transfers here 
+
   glBindTexture(GL_TEXTURE_2D, 0);
   glBindFramebuffer(GL_READ_FRAMEBUFFER, scene_fbo);
+  glPixelStorei(GL_PACK_ALIGNMENT, 1); 
   glReadBuffer(GL_COLOR_ATTACHMENT1);
   glReadPixels(0, 0, tex_w, tex_h, GL_RED, GL_UNSIGNED_BYTE, image);
   glBindFramebuffer(GL_FRAMEBUFFER,0);
 
- if(outfile_set) {
+#if YUVGRABBER_WRITE_FIRST_FRAME_AS_PNG
+  printf("reading back an image with: %d x %d\n", tex_w, tex_h);
+  rx_save_png(rx_get_exe_path() +"test.png", image, tex_w, tex_h, 1);
+  ::exit(0);
+#endif
+
+  if(outfile_set) {
 
    YUV420PSize s = getSize(outfile_size_id);
 

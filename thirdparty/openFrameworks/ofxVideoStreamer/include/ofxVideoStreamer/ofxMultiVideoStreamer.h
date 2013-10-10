@@ -38,6 +38,7 @@ class ofxMultiVideoStreamer {
   void beginGrab();
   void endGrab();
   void addAudio(float* input, int nsize, int nchannels);
+  void update(); /* call this often; this makes sure that we reconnect to the remote server when we get disconnected */
  private:
   MultiVideoStreamer mvs;
   YUV420PGrabber grabber;
@@ -49,4 +50,7 @@ inline bool ofxMultiVideoStreamer::wantsNewFrame() {
   return grabber.hasNewFrame();
 }
 
+inline void ofxMultiVideoStreamer::update() {
+  mvs.update();
+}
 #endif

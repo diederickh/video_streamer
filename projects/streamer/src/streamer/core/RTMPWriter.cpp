@@ -32,8 +32,6 @@ RTMPWriter::RTMPWriter()
   //#endif
 
   signal(SIGPIPE, rtmp_sigpipe_handler);
-  // signal(SIGPIPE, SIG_IGN);
-  
 }
 
 RTMPWriter::~RTMPWriter() {
@@ -51,7 +49,6 @@ RTMPWriter::~RTMPWriter() {
   }
 
   state = RW_STATE_NONE;
-
 }
 
 bool RTMPWriter::initialize() {

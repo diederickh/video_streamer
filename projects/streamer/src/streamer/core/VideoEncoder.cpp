@@ -18,8 +18,7 @@ extern "C" {
 
 void videoencoder_x264_log(void* param, int level, const char* fmt, va_list arg) {
 
-  return ;  // @todo remove
-
+#if !defined(NDEBUG)
   char buf[1024 * 8]; 
   vsprintf(buf, fmt, arg);
 
@@ -32,6 +31,7 @@ void videoencoder_x264_log(void* param, int level, const char* fmt, va_list arg)
   else {
     STREAMER_VERBOSE(buf);
   }
+#endif
 
 }
 
@@ -43,6 +43,13 @@ VideoEncoder::VideoEncoder()
   ,vflip(true)
   ,frame_num(0)
   ,stream_id(-1)
+#if VIDEO_ENCODER_MEASURE_BITRATE
+  ,kbps_timeout(0)
+  ,kbps_delay(1000 * 1000 * 1000)
+  ,kbps_nbytes(0)
+  ,kbps_time_started(0)
+  ,kbps(0.0)
+#endif
 {
 }
 
@@ -127,6 +134,8 @@ bool VideoEncoder::initializeX264() {
 #if !defined(NDEBUG)
   p->i_log_level = X264_LOG_DEBUG;
   p->pf_log = videoencoder_x264_log;
+#else
+  p->i_log_level = X264_LOG_ERROR;
 #endif   
 
   if(settings.profile.size()) {
@@ -278,13 +287,34 @@ bool VideoEncoder::encodePacket(AVPacket* p, FLVTag& tag) {
   tag.setFrameType(pic_out.b_keyframe ? FLV_VIDEOFRAME_KEY_FRAME : FLV_VIDEOFRAME_INTER_FRAME);
   tag.setCompositionTime(offset);
 
-  // debuging buffer issue
+  // debuging buffer issue, when a player has issues with loading/filling a buffer this 
+  // might be caused because of the keyframe interval is to high. This piece of code
+  // is used to determine how much time between each keyframe exists.
+#if 0
   if(pic_out.b_keyframe) {
     static uint64_t kt = uv_hrtime();
     double d = double(((uv_hrtime() - kt)) / 1000000000.0);
-    STREAMER_STATUS("------------------------ got a keyframe, took: %f s\n", d);
+    STREAMER_STATUS("-- got a keyframe, took: %f s\n", d);
     kt = uv_hrtime();
   }
+#endif
+
+#if VIDEO_ENCODER_MEASURE_BITRATE
+  uint64_t now = uv_hrtime();
+  if(!kbps_time_started) {
+    kbps_time_started = now;
+  }
+
+  kbps_nbytes += frame_size;
+
+  if(now >= kbps_timeout) {
+    double timediff = double(now - kbps_time_started) / (1000 * 1000 * 1000); // in sec
+    kbps = ((kbps_nbytes*8) / timediff) / 1000.0;
+    STREAMER_STATUS("-- x264 kbps: %02.2f\n", kbps);
+    kbps_timeout = now + kbps_delay;
+  }
+#endif
+
   return true;
 }
 

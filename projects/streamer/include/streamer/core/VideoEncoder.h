@@ -48,6 +48,8 @@ extern "C" {
 #include <streamer/flv/FLVTypes.h>
 #include <streamer/core/EncoderTypes.h>
 
+#define VIDEO_ENCODER_MEASURE_BITRATE 1  /* when set to 1 we will measure how many kbps the x264 encoder procuces per second. the calculated value is an avarage */
+
 // --------------------------------------------------
 
 void videoencoder_x264_log(void* param, int level, const char* fmt, va_list arg);
@@ -83,6 +85,14 @@ class VideoEncoder {
   uint32_t frame_num;         /* current encoded frame number */
   int32_t stream_id;          /* an AVPacket might contain video data for multiple quality streams (multi streams). Each stream uses its own VideoEncoder instance with the correct parameters. By setting the stream id to a value >= 0 (see setStreamID()), we will select the correct strides and planes from the AVPacket data */
   std::ofstream ofs;          /* only used when writing to a file */
+
+#if defined(VIDEO_ENCODER_MEASURE_BITRATE)
+  uint64_t kbps_timeout;      /* the timeout - when we will check the current kpbs */
+  uint64_t kbps_delay;        /* the time between each interval that we check the current bitrate, in nano sec */
+  uint64_t kbps_nbytes;       /* the total bytes generated */
+  uint64_t kbps_time_started; /* when we started encoding, first packet */
+  double kbps;                /* the actual kbps value */
+#endif  
 };
 
 inline uint8_t VideoEncoder::getFPS() {

@@ -8,7 +8,8 @@ include(${CMAKE_CURRENT_LIST_DIR}/../../../../../projects/xmlconfig/build/cmake/
 set(ofx_source_dir ${CMAKE_CURRENT_LIST_DIR}/../../src/ofxVideoStreamer/)
 
 set(ofx_source_files
-  ${ofx_source_dir}/ofxVideoStreamerScreenCapture.cpp
+  ${ofx_source_dir}/ofxVideoStreamer.cpp
+  ${ofx_source_dir}/ofxMultiVideoStreamer.cpp
 )
 
 set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_LIST_DIR}/../../../../../install/${tri_triplet}/thirdparty/openframeworks/ofxVideoStreamer/)

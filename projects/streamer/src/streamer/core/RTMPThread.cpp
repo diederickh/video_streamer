@@ -73,7 +73,7 @@ void rtmp_thread_func(void* user) {
       bitrate_now = uv_hrtime();
       if(bitrate_now > bitrate_timeout) {
         bitrate_kbps = ((bytes_written * 8) / 1000.0) / ((uv_hrtime() - bitrate_time_started) / 1000000000); //  / ((uv_hrtime() - bitrate_time_started)); // in millis
-        STREAMER_VERBOSE("-- kbps: %0.2f, bytes processed: %f \n", bitrate_kbps, double(bytes_written/(1024.0 * 1024.0)));
+        STREAMER_STATUS("++ rtmp kbps: %02.2f\n", bitrate_kbps);
         bitrate_timeout = bitrate_now + bitrate_delay;
       }
 

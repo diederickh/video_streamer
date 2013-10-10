@@ -3,11 +3,24 @@
 #include <iterator>
 #include <algorithm>
 
+#if FAAC_ENCODER_MEASURE_BITRATE
+extern "C" {
+#  include <uv.h>
+}
+#endif
+
 AudioEncoderFAAC::AudioEncoderFAAC() 
   :encoder(NULL)
   ,nsamples_needed(0)
   ,nbytes_out(0)
   ,faac_buffer(NULL)
+#if FAAC_ENCODER_MEASURE_BITRATE
+  ,kbps_timeout(0)
+  ,kbps_delay(1000 * 1000 * 1000)
+  ,kbps_nbytes(0)
+  ,kbps_time_started(0)
+  ,kbps(0.0)
+#endif
 {
 }
 
@@ -142,6 +155,22 @@ bool AudioEncoderFAAC::encodePacket(AVPacket* p, FLVTag& tag) {
   tag.makeAudioTag();
   tag.setAACPacketType(FLV_AAC_RAW_DATA);
   tag.setTimeStamp(p->timestamp);
+
+#if FAAC_ENCODER_MEASURE_BITRATE
+  uint64_t now = uv_hrtime();
+  if(!kbps_time_started) {
+    kbps_time_started = now;
+  }
+
+  kbps_nbytes += written;
+
+  if(now >= kbps_timeout) {
+    double timediff = double(now - kbps_time_started) / (1000 * 1000 * 1000); // in sec
+    kbps = ((kbps_nbytes * 8) / timediff) / 1000.0;
+    STREAMER_STATUS("-- faac kbps: %02.2f\n", kbps);
+    kbps_timeout = now + kbps_delay;
+  }
+#endif
 
   return true;
 }

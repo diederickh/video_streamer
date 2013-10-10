@@ -96,7 +96,6 @@ void streamer_log_status(int line, const char* function, const char* fmt, ...);
 void streamer_log_function(int level, int line, const char* function, const char* fmt, va_list args);
 void streamer_log_entry(LogEntry entry);
 void streamer_log_init(std::string outfile, int minLevel);
-
 // --------------------------------------------------
 
 extern LogContext log_ctx; 

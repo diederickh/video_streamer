@@ -39,6 +39,7 @@ set(app_libraries
   ${decklink_libraries}
   ${hwscale_libraries}
   ${portaudio_libraries}
+  ${tinylib_libraries}
   ${OPENGL_gl_LIBRARY}
 )
 

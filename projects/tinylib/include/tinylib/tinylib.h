@@ -34,6 +34,10 @@
   prog = rx_create_program(vert, frag);                        - create a problem - DOES NOT LINK
 
 
+  IMAGES
+  -----------------------------------------------------------------------------------
+  rx_save_png("filename.png", pixels, 640, 480, 3);            - writes a png using lib png
+
   UTILS
   -----------------------------------------------------------------------------------
   std::string path = rx_get_exe_path();                 - Returns the path to the exe 
@@ -67,6 +71,7 @@
 #  include <GLXW/glxw.h>
 #endif
 
+#include <png.h>
 
 #ifndef PI
 #define PI 3.14159265358979323846
@@ -318,5 +323,113 @@ static std::string rx_get_exe_path() {
   return ret;
 }
 #endif // rx_get_exe_path()
+
+// write an w*h array of pixels to a png file
+static bool rx_save_png(std::string filepath, unsigned char* pixels, int w, int h, int channels = 3) {
+
+  if(!w || !h) {
+    printf("error: cannot save png because the given width and height are invalid: %d x %d\n", w, h);
+    return false;
+  }
+
+  if(!channels || channels > 4) {
+    printf("error: cannot save png because the number of color channels is invalid: %d\n", channels);
+    return false;
+  }
+
+  if(!pixels) {
+    printf("error: cannot save png because we got an invalid pixels array: %p\n", pixels);
+    return false;
+  }
+
+  if(!filepath.size()) {
+    printf("error: cannot save png because the given filepath is invalid.\n");
+    return false;
+  }
+
+  png_structp png_ptr; 
+  png_infop info_ptr;
+
+  FILE* fp = fopen(filepath.c_str(), "wb");
+  if(!fp) {
+    printf("error: canont save png because we cannot open the filepath: %s\n", filepath.c_str());
+    fp = NULL;
+    return false;
+  }
+
+  png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+  if(png_ptr == NULL) {
+    printf("error: cannot save png because we cannot create a png write struct.\n");
+    fclose(fp);
+    fp = NULL;
+    return false;
+  }
+
+  info_ptr = png_create_info_struct(png_ptr);
+  if(info_ptr == NULL) {
+    printf("error: cannot save png brecause we cannot create a png info struct.\n");
+    fclose(fp);
+    fp = NULL;
+    return false;
+  }
+
+  if(setjmp(png_jmpbuf(png_ptr))) {
+    printf("error: cannot save png because we cannot set the jump pointer.\n");
+    png_destroy_write_struct(&png_ptr, &info_ptr);
+    fclose(fp);
+    fp = NULL;
+    return false;
+  }
+
+  png_uint_32 color_type;
+  switch(channels) {
+    case 1: {
+      color_type = PNG_COLOR_TYPE_GRAY; 
+      break;
+    }
+    case 3: {
+      color_type = PNG_COLOR_TYPE_RGB;
+      break;
+    }
+    case 4: {
+      color_type = PNG_COLOR_TYPE_RGB_ALPHA;
+      break;
+    }
+    default: {
+      printf("error: cannot save png because we cannot detect the color type based on the number of channels.\n");
+      fclose(fp);
+      fp = NULL;
+      return false;
+    }
+  };
+
+  png_set_IHDR(png_ptr, 
+               info_ptr, 
+               w, 
+               h, 
+               8, 
+               color_type, 
+               PNG_INTERLACE_NONE, 
+               PNG_COMPRESSION_TYPE_DEFAULT, 
+               PNG_FILTER_TYPE_DEFAULT);
+
+  png_bytep* row_ptrs = new png_bytep[h];
+  for(size_t j = 0; j < h; ++j) {
+    row_ptrs[j] = pixels + (j * (w * channels));
+  }
+ 
+  png_init_io(png_ptr, fp);
+  png_set_rows(png_ptr, info_ptr, row_ptrs);
+  png_write_png(png_ptr, info_ptr, PNG_TRANSFORM_IDENTITY, NULL);
+
+  png_destroy_write_struct(&png_ptr, &info_ptr);
+
+  delete[] row_ptrs;
+
+  fclose(fp);
+
+  return true;
+
+}
 
 #endif

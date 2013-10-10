@@ -29,15 +29,14 @@ void AVPacket::print() {
 }
 
 AVPacket::~AVPacket() {
-
-  printf("AVPacket::~AVPacket()\n");
-
   type = AV_TYPE_UNKNOWN;
   timestamp = 0;
   planes[0] = planes[1] = planes[2] = NULL;
   strides[0] = strides[1] = strides[2] = 0;
   is_multi = false;
   multi_info.clear();
+  refcount = 0;
+  data.clear();
 }
 
 void AVPacket::allocate(size_t nbytes) {

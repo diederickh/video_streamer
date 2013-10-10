@@ -137,9 +137,11 @@ class ofxVideoStreamer {
   bool setup(std::string settingsFile, int winW, int winH, int vidW, int vidH);
   bool start();
 
+  
   bool wantsNewFrame(); 
   void beginGrab();
   void endGrab();
+  void update();                                          /* call this often; this will make sure we reconnect when we get disconnected by the remote media server */
   void draw();
   unsigned long getNumSamplesNeededForAudioEncoding();     /* the audio encoder (AAC) needs a fixed set of audio sample for each 'encoding' call. this function returns the number of samples. call this after you've called setup(). Simply divide by the number of channels to get the number of frames per encoding step */
   void addAudio(float* input, int nsize, int nchannels);   /* input is the audio buffer from OF, nsize number of frames and nchannels the number of channels must be 2, when using AAC you must scale this value! see the AAC encoder */
@@ -159,6 +161,10 @@ inline bool ofxVideoStreamer::wantsNewFrame() {
 
 inline unsigned long ofxVideoStreamer::getNumSamplesNeededForAudioEncoding() {
   return aac.getSamplesNeededForEncoding();
+}
+
+inline void ofxVideoStreamer::update() {
+  streamer.update();
 }
 
 #endif

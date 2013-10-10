@@ -1,17 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <videostreamer>
   <settings>
-    <default_stream_id>0</default_stream_id>
+    <default_stream_id>3</default_stream_id>
   </settings>
   <streams>
 
     <!-- 720p -->
+    <!--
     <stream>
       <id>0</id>
       <server>
-        <url>rtmp://p.ep103224.i.akamaientrypoint.net/EntryPoint/nike_1_3000@103224</url>
-        <username>203268</username>
-        <password>test</password>
+        <url>rtmp://p.ep86008.i.akamaientrypoint.net/EntryPoint/nike_1_3000@86008</url>
+        <username>185071</username>
+        <password>decisive1</password>
       </server>
       <video>
         <width>1280</width>
@@ -32,24 +33,24 @@
         <samplerate>44100</samplerate>
         <mode>2</mode> 
         <bitsize>2</bitsize>
-        <bitrate>32</bitrate>
+        <bitrate>256</bitrate>
         <quality>4</quality>
         <in_bitsize>2</in_bitsize>
         <in_interleaved>1</in_interleaved>
       </audio>
     </stream>
-
+    -->
 
     <!-- 480p -->
     <stream>
       <id>1</id>
       <server>
-        <url>rtmp://p.ep103224.i.akamaientrypoint.net/EntryPoint/nike_1_896@103224</url>
-        <username>203268</username>
-        <password>test</password>
+       <url>rtmp://p.ep86008.i.akamaientrypoint.net/EntryPoint/nike_1_896@86008</url>
+       <username>185071</username>
+       <password>decisive1</password>
       </server>
       <video>
-        <width>856</width>
+        <width>854</width>
         <height>480</height>
         <fps>25</fps>
         <bitrate>764</bitrate>
@@ -67,26 +68,21 @@
         <samplerate>44100</samplerate> 
         <mode>2</mode> 
         <bitsize>2</bitsize> 
-        <bitrate>32</bitrate>
+        <bitrate>128</bitrate>
         <quality>4</quality>
         <in_bitsize>2</in_bitsize>
         <in_interleaved>1</in_interleaved>
       </audio>
     </stream>
 
-
-        <!--
-        <url>rtmp://localhost/flvplayback/quality0</url>
-        -->
-
-
     <!-- 360p -->
+    <!--
     <stream>
       <id>2</id>
       <server>
-        <url>rtmp://p.ep103224.i.akamaientrypoint.net/EntryPoint/nike_1_480@103224</url>
-        <username>203268</username>
-        <password>test</password>
+        <url>rtmp://p.ep86008.i.akamaientrypoint.net/EntryPoint/nike_1_480@86008</url>
+        <username>185071</username>
+        <password>decisive1</password>
       </server>
       <video>
         <width>640</width>
@@ -102,28 +98,27 @@
         <keyint_max>100</keyint_max>
         <level_idc>30</level_idc>
       </video>
-
       <audio>
         <codec>2</codec>
         <samplerate>44100</samplerate>
         <mode>2</mode>
         <bitsize>2</bitsize> 
-        <bitrate>32</bitrate>
+        <bitrate>96</bitrate>
         <quality>4</quality>
         <in_bitsize>2</in_bitsize>
         <in_interleaved>1</in_interleaved>
       </audio>
     </stream>
-
+    -->
 
     <!-- 240p -->
-
+    <!-- 
     <stream>
       <id>3</id>
       <server>
-        <url>rtmp://p.ep103224.i.akamaientrypoint.net/EntryPoint/nike_1_224@103224</url>
-        <username>203268</username>
-        <password>test</password>
+        <url>rtmp://p.ep86008.i.akamaientrypoint.net/EntryPoint/nike_1_224@86008</url>
+        <username>185071</username>
+        <password>decisive1</password>
       </server>
       <video>
         <width>426</width>
@@ -144,13 +139,13 @@
         <samplerate>44100</samplerate>
         <mode>2</mode>
         <bitsize>2</bitsize> 
-        <bitrate>32</bitrate>
+        <bitrate>48</bitrate>
         <quality>4</quality>
         <in_bitsize>2</in_bitsize>
         <in_interleaved>1</in_interleaved>
       </audio>
     </stream>
-
+    -->
 
   </streams>
 </videostreamer>

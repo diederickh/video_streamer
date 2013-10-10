@@ -81,8 +81,8 @@ struct AVPacket {
   void release();             /* call Release when you don't use this packet anymore, so the memory pool can reuse  it */
   
   void copy(uint8_t* buf, size_t nbytes); /* copy the given bytes to `data` */
-
   void allocate(size_t nbytes);  /* make sure that the data member can hold `nbytes` of data */
+
   uint8_t type;                  /* either AV_TYPE_VIDEO or AV_TYPE_AUDIO */
   uint32_t timestamp;            /* timestamp that will be used by the FLVTag; this is the timestamp on which the data for this packet was genearted in millis, started with 0 */
   std::vector<uint8_t> data;     /* the actual RAW video or audio data that will be encoded */
@@ -90,7 +90,6 @@ struct AVPacket {
   uint32_t strides[3];           /* strides of the Y,U,V planes in `data` */
   MemoryPool* memory_pool;       /* the memory pool to which this packet belongs */
   uint32_t refcount;             /* when addRef() is called this gets incremented, release() decrements it  (through memory pool) */
-
   bool is_multi;                 /* set to true when makeMultiVideoPacket() has been called, this is necessary for the multi video streamer */
   std::map<uint32_t, MultiAVPacketInfo> multi_info; /* used by the multi video streamer */
 };
